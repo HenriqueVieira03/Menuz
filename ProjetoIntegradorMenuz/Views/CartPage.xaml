@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.CartPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ProjetoIntegradorMenuz.Models"
+    xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
+    x:DataType="vm:CartViewModel"
+    Title="Seu pedido">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- ========== ITENS ========== -->
+        <CollectionView
+            Margin="20,16,20,0"
+            ItemsSource="{Binding Cart.Items}"
+            SelectionMode="None">
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.Footer>
+                <BoxView HeightRequest="16" Color="Transparent" />
+            </CollectionView.Footer>
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout
+                    Padding="40"
+                    Spacing="10"
+                    VerticalOptions="Center">
+                    <Label
+                        FontSize="60"
+                        HorizontalTextAlignment="Center"
+                        Text="🛒" />
+                    <Label
+                        HorizontalTextAlignment="Center"
+                        StyleClass="title"
+                        Text="Seu carrinho está vazio" />
+                    <Label
+                        HorizontalTextAlignment="Center"
+                        StyleClass="muted"
+                        Text="Volte ao cardápio e escolha algo delicioso." />
+                    <Button
+                        Margin="0,14,0,0"
+                        Clicked="OnBackClicked"
+                        HorizontalOptions="Center"
+                        Text="Voltar ao cardápio" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:CartItem">
+                    <Border Padding="16" StyleClass="card">
+                        <Grid
+                            ColumnDefinitions="*,Auto"
+                            ColumnSpacing="12"
+                            RowDefinitions="Auto,Auto"
+                            RowSpacing="12">
+
+                            <VerticalStackLayout Spacing="2">
+                                <Label
+                                    LineBreakMode="TailTruncation"
+                                    MaxLines="1"
+                                    StyleClass="name"
+                                    Text="{Binding Product.Name}" />
+                                <Label StyleClass="muted" Text="{Binding UnitPrice, StringFormat='R$ {0:N2} cada'}" />
+                            </VerticalStackLayout>
+
+                            <Label
+                                Grid.Column="1"
+                                StyleClass="price"
+                                Text="{Binding Subtotal, StringFormat='R$ {0:N2}'}"
+                                VerticalOptions="Start" />
+
+                            <!-- Quantidade -->
+                            <HorizontalStackLayout Grid.Row="1" Spacing="14">
+                                <Button
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CartViewModel}}, Path=DecreaseCommand}"
+                                    CommandParameter="{Binding .}"
+                                    StyleClass="stepper"
+                                    Text="−" />
+                                <Label
+                                    FontFamily="OpenSansSemibold"
+                                    FontSize="17"
+                                    HorizontalTextAlignment="Center"
+                                    MinimumWidthRequest="24"
+                                    Text="{Binding Quantity}"
+                                    VerticalOptions="Center" />
+                                <Button
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CartViewModel}}, Path=IncreaseCommand}"
+                                    CommandParameter="{Binding .}"
+                                    StyleClass="stepper"
+                                    Text="+" />
+                            </HorizontalStackLayout>
+
+                            <Button
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CartViewModel}}, Path=RemoveCommand}"
+                                CommandParameter="{Binding .}"
+                                HorizontalOptions="End"
+                                StyleClass="danger"
+                                Text="Remover" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- ========== RESUMO / AÇÕES (some quando o carrinho está vazio) ========== -->
+        <Border Grid.Row="1" StyleClass="footer">
+            <Border.Triggers>
+                <DataTrigger
+                    Binding="{Binding Cart.TotalCount}"
+                    TargetType="Border"
+                    Value="0">
+                    <Setter Property="IsVisible" Value="False" />
+                </DataTrigger>
+            </Border.Triggers>
+
+            <VerticalStackLayout Spacing="16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Spacing="2">
+                        <Label StyleClass="muted" Text="Total do pedido" />
+                        <Label StyleClass="muted" Text="{Binding Cart.TotalCount, StringFormat='{0} item(ns)'}" />
+                    </VerticalStackLayout>
+                    <Label
+                        Grid.Column="1"
+                        FontFamily="OpenSansSemibold"
+                        FontSize="26"
+                        StyleClass="price"
+                        Text="{Binding Cart.TotalPrice, StringFormat='R$ {0:N2}'}"
+                        VerticalOptions="Center" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,2*" ColumnSpacing="12">
+                    <Button
+                        Command="{Binding ClearCommand}"
+                        StyleClass="outline"
+                        Text="Limpar" />
+                    <Button
+                        Grid.Column="1"
+                        Clicked="OnCheckoutClicked"
+                        Text="Finalizar pedido" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

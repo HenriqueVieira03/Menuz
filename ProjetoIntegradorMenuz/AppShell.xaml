@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ProjetoIntegradorMenuz.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:ProjetoIntegradorMenuz.Views"
+    FlyoutBehavior="Disabled"
+    Shell.NavBarHasShadow="False"
+    Shell.BackgroundColor="{AppThemeBinding Light={StaticResource LightCard}, Dark={StaticResource DarkCard}}"
+    Shell.ForegroundColor="{AppThemeBinding Light={StaticResource LightPrimary}, Dark={StaticResource DarkPrimary}}"
+    Shell.TitleColor="{AppThemeBinding Light={StaticResource LightForeground}, Dark={StaticResource DarkForeground}}">
+
+    <ShellContent
+        Title="Cardápio"
+        ContentTemplate="{DataTemplate views:MenuPage}"
+        Route="MenuPage" />
+
+</Shell>

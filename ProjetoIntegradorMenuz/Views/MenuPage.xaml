@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.MenuPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ProjetoIntegradorMenuz.Models"
+    xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
+    x:DataType="vm:MenuViewModel"
+    Title="Menuz"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- ========== CABEÇALHO ========== -->
+        <VerticalStackLayout Grid.Row="0" Padding="24,20,24,4" Spacing="2">
+            <Label Text="Menuz" StyleClass="brand" />
+            <Label Text="O que vamos pedir hoje?" StyleClass="muted" />
+        </VerticalStackLayout>
+
+        <!-- ========== CATEGORIAS (chips) ========== -->
+        <CollectionView
+            Grid.Row="1"
+            Margin="0,8,0,0"
+            HeightRequest="64"
+            HorizontalScrollBarVisibility="Never"
+            ItemsSource="{Binding Categories}"
+            SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+            SelectionMode="Single">
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="10" Orientation="Horizontal" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.Header>
+                <BoxView WidthRequest="14" Color="Transparent" />
+            </CollectionView.Header>
+            <CollectionView.Footer>
+                <BoxView WidthRequest="14" Color="Transparent" />
+            </CollectionView.Footer>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Category">
+                    <Border StyleClass="chip" VerticalOptions="Center">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="Selected">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource LightPrimary}, Dark={StaticResource DarkPrimary}}" />
+                                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource LightPrimary}, Dark={StaticResource DarkPrimary}}" />
+                                            <Setter TargetName="ChipLabel" Property="Label.TextColor" Value="{StaticResource White}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Label x:Name="ChipLabel" StyleClass="chipLabel" Text="{Binding Name}" />
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- ========== PRODUTOS ========== -->
+        <Grid Grid.Row="2">
+
+            <!-- Pull-to-refresh. OneWay de propósito: se fosse TwoWay, o puxar-para-atualizar
+                 marcaria IsBusy antes do comando e o LoadAsync sairia cedo. -->
+            <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy, Mode=OneWay}">
+                <CollectionView
+                    x:Name="ProductsList"
+                    Margin="20,8,20,0"
+                    ItemsSource="{Binding Products}"
+                    SelectionMode="None">
+
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout
+                            x:Name="ProductsLayout"
+                            HorizontalItemSpacing="16"
+                            Orientation="Vertical"
+                            Span="1"
+                            VerticalItemSpacing="16" />
+                    </CollectionView.ItemsLayout>
+
+                    <!-- Espaço no fim para a barra do carrinho não cobrir o último card -->
+                    <CollectionView.Footer>
+                        <BoxView HeightRequest="104" Color="Transparent" />
+                    </CollectionView.Footer>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ProductItemViewModel">
+                            <Border BindingContextChanged="OnCardBindingContextChanged" StyleClass="card">
+                                <Grid RowDefinitions="168,Auto">
+
+                                    <!-- Imagem (lazy) com placeholder -->
+                                    <Grid BackgroundColor="{AppThemeBinding Light={StaticResource LightMuted}, Dark={StaticResource DarkMuted}}">
+                                        <Label
+                                            FontSize="40"
+                                            HorizontalOptions="Center"
+                                            Opacity="0.5"
+                                            Text="🍽️"
+                                            VerticalOptions="Center" />
+                                        <Image Aspect="AspectFill" Source="{Binding Picture}" />
+                                    </Grid>
+
+                                    <Grid
+                                        Grid.Row="1"
+                                        Padding="16,14,16,16"
+                                        RowDefinitions="Auto,Auto,Auto"
+                                        RowSpacing="6">
+
+                                        <Label
+                                            LineBreakMode="TailTruncation"
+                                            MaxLines="1"
+                                            StyleClass="name"
+                                            Text="{Binding Name}" />
+
+                                        <Label
+                                            Grid.Row="1"
+                                            LineBreakMode="TailTruncation"
+                                            MaxLines="2"
+                                            MinimumHeightRequest="36"
+                                            StyleClass="muted"
+                                            Text="{Binding Description}" />
+
+                                        <Grid
+                                            Grid.Row="2"
+                                            Margin="0,6,0,0"
+                                            ColumnDefinitions="*,Auto">
+                                            <Label
+                                                StyleClass="price"
+                                                Text="{Binding Price, StringFormat='R$ {0:N2}'}"
+                                                VerticalOptions="Center" />
+                                            <Button
+                                                Grid.Column="1"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MenuViewModel}}, Path=AddToCartCommand}"
+                                                CommandParameter="{Binding .}"
+                                                StyleClass="circle"
+                                                Text="+" />
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+
+            <!-- ========== ERRO ========== -->
+            <VerticalStackLayout
+                Padding="32"
+                IsVisible="{Binding HasError}"
+                Spacing="14"
+                VerticalOptions="Center">
+                <Label
+                    FontSize="52"
+                    HorizontalTextAlignment="Center"
+                    Text="😕" />
+                <Label
+                    HorizontalTextAlignment="Center"
+                    StyleClass="muted"
+                    Text="{Binding ErrorMessage}" />
+                <Button
+                    Command="{Binding LoadCommand}"
+                    HorizontalOptions="Center"
+                    Text="Tentar novamente" />
+            </VerticalStackLayout>
+
+            <!-- ========== BARRA FLUTUANTE DO CARRINHO ========== -->
+            <Border
+                x:Name="CartBar"
+                Margin="16,0,16,16"
+                IsVisible="False"
+                StyleClass="cartbar"
+                VerticalOptions="End">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenCartCommand}" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                    <Border StyleClass="badge" VerticalOptions="Center">
+                        <Label StyleClass="onPrimary" Text="{Binding Cart.TotalCount}" />
+                    </Border>
+                    <Label
+                        Grid.Column="1"
+                        StyleClass="onPrimary"
+                        Text="Ver carrinho"
+                        VerticalOptions="Center" />
+                    <Label
+                        Grid.Column="2"
+                        StyleClass="onPrimary"
+                        Text="{Binding Cart.TotalPrice, StringFormat='R$ {0:N2}'}"
+                        VerticalOptions="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>
