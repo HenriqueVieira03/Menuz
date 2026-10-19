@@ -11,6 +11,9 @@ namespace ProjetoIntegradorMenuz.ViewModels
     {
         private readonly MenuApiService _api;
 
+        // Cache dos itens por categoria: trocar de aba não recria views nem baixa imagens de novo.
+        private readonly Dictionary<int, IReadOnlyList<ProductItemViewModel>> _cache = new();
+
         public MenuViewModel(MenuApiService api, CartService cart)
         {
             _api = api;
@@ -18,10 +21,14 @@ namespace ProjetoIntegradorMenuz.ViewModels
         }
 
         public CartService Cart { get; }
-        public ObservableCollection<Category> Categories { get; } = new();
-        public ObservableCollection<ProductItemViewModel> Products { get; } = new();
+        public ObservableCollection<CategoryChipViewModel> Chips { get; } = new();
+
+        // A lista é trocada de uma vez só (uma notificação), em vez de Clear + Add item a item.
+        [ObservableProperty]
+        private IReadOnlyList<ProductItemViewModel> products = Array.Empty<ProductItemViewModel>();
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SectionTitle))]
         private Category? selectedCategory;
 
         [ObservableProperty]
@@ -31,15 +38,35 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(HasError))]
         private string? errorMessage;
 
+        public string SectionTitle => SelectedCategory?.Name ?? string.Empty;
         public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
         partial void OnSelectedCategoryChanged(Category? value)
         {
-            Products.Clear();
-            if (value is null) return;
+            if (value is null)
+            {
+                Products = Array.Empty<ProductItemViewModel>();
+                return;
+            }
 
-            foreach (var product in value.Products)
-                Products.Add(new ProductItemViewModel(product));
+            if (!_cache.TryGetValue(value.Id, out var list))
+            {
+                list = value.Products.Select(p => new ProductItemViewModel(p)).ToList();
+                _cache[value.Id] = list;
+            }
+
+            Products = list;
+        }
+
+        [RelayCommand]
+        private void SelectCategory(CategoryChipViewModel? chip)
+        {
+            if (chip is null || chip.IsSelected) return;
+
+            foreach (var c in Chips)
+                c.IsSelected = ReferenceEquals(c, chip);
+
+            SelectedCategory = chip.Category;
         }
 
         [RelayCommand]
@@ -54,11 +81,12 @@ namespace ProjetoIntegradorMenuz.ViewModels
             {
                 var menu = await _api.GetMenuAsync();
 
-                Categories.Clear();
+                _cache.Clear();
+                Chips.Clear();
                 foreach (var category in menu)
-                    Categories.Add(category);
+                    Chips.Add(new CategoryChipViewModel(category));
 
-                SelectedCategory = Categories.FirstOrDefault();
+                SelectCategory(Chips.FirstOrDefault());
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
@@ -73,8 +101,10 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [RelayCommand]
         private void AddToCart(ProductItemViewModel? item)
         {
-            if (item is not null)
-                Cart.Add(item.Product);
+            if (item is null) return;
+
+            Cart.Add(item.Product);
+            _ = item.FlashAddedAsync();
         }
 
         [RelayCommand]

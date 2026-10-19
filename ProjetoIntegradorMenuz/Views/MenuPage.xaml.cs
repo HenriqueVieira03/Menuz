@@ -7,30 +7,30 @@ namespace ProjetoIntegradorMenuz.Views
     public partial class MenuPage : ContentPage
     {
         private readonly MenuViewModel _vm;
-        private bool _cartBarShown;
+        private bool _barVisible;
 
         public MenuPage(MenuViewModel vm)
         {
             InitializeComponent();
             BindingContext = _vm = vm;
+
             SizeChanged += OnPageSizeChanged;
+            _vm.PropertyChanged += OnViewModelPropertyChanged;
             _vm.Cart.PropertyChanged += OnCartPropertyChanged;
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            SyncCartBar();
-
-            if (_vm.Categories.Count == 0)
+            if (_vm.Chips.Count == 0)
                 await _vm.LoadCommand.ExecuteAsync(null);
         }
 
-        // Ajusta o número de colunas conforme a largura (tablet = 3+, celular = 1-2).
+        // Colunas conforme a largura (tablet = 3+, celular = 1-2).
         private void OnPageSizeChanged(object? sender, EventArgs e)
         {
             if (Width <= 0) return;
-            ProductsLayout.Span = Math.Max(1, (int)((Width - 40) / 320));
+            ProductsLayout.Span = Math.Max(1, (int)((Width - 40) / 300));
         }
 
         // Lazy loading: a imagem só é solicitada quando o card é realizado/reciclado na tela.
@@ -40,42 +40,48 @@ namespace ProjetoIntegradorMenuz.Views
                 item.LoadImage();
         }
 
-        // ---------- Barra flutuante do carrinho ----------
-
-        // Ao voltar da tela do carrinho (ex.: "Limpar"), reajusta sem animação.
-        private void SyncCartBar()
+        // Transição suave ao trocar de categoria.
+        private async void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            _cartBarShown = _vm.Cart.TotalCount > 0;
-            CartBar.IsVisible = _cartBarShown;
-            CartBar.TranslationY = 0;
-            CartBar.Scale = 1;
+            if (e.PropertyName != nameof(MenuViewModel.Products)) return;
+
+            ProductsList.Opacity = 0;
+            ProductsList.TranslationY = 16;
+            await Task.WhenAll(
+                ProductsList.FadeTo(1, 220, Easing.CubicOut),
+                ProductsList.TranslateTo(0, 0, 220, Easing.CubicOut));
         }
 
+        // Barra do carrinho desliza para dentro/fora e dá um leve "pulso" a cada item.
         private async void OnCartPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName != nameof(CartService.TotalCount)) return;
 
-            var count = _vm.Cart.TotalCount;
+            var show = _vm.Cart.TotalCount > 0;
 
-            if (count > 0 && !_cartBarShown)
+            if (show == _barVisible)
             {
-                // Primeiro item: a barra desliza de baixo para cima.
-                _cartBarShown = true;
-                CartBar.TranslationY = 140;
+                if (show)
+                {
+                    await CartBar.ScaleTo(1.03, 80, Easing.CubicOut);
+                    await CartBar.ScaleTo(1, 120, Easing.CubicIn);
+                }
+                return;
+            }
+
+            _barVisible = show;
+
+            if (show)
+            {
+                CartBar.TranslationY = 120;
                 CartBar.IsVisible = true;
-                await CartBar.TranslateToAsync(0, 0, 280, Easing.CubicOut);
+                await CartBar.TranslateTo(0, 0, 280, Easing.CubicOut);
             }
-            else if (count > 0)
+            else
             {
-                // Itens seguintes: um "pulinho" confirma que o toque funcionou.
-                await CartBar.ScaleToAsync(1.04, 80, Easing.CubicOut);
-                await CartBar.ScaleToAsync(1.0, 120, Easing.CubicIn);
-            }
-            else if (_cartBarShown)
-            {
-                _cartBarShown = false;
-                await CartBar.TranslateToAsync(0, 140, 200, Easing.CubicIn);
-                CartBar.IsVisible = false;
+                await CartBar.TranslateTo(0, 120, 200, Easing.CubicIn);
+                if (!_barVisible)
+                    CartBar.IsVisible = false;
             }
         }
     }

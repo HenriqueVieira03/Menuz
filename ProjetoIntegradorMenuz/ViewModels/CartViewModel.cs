@@ -31,5 +31,8 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         [RelayCommand]
         private void Clear() => Cart.Clear();
+
+        [RelayCommand]
+        private async Task GoBackAsync() => await Shell.Current.GoToAsync("..");
     }
 }

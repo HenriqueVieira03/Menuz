@@ -8,142 +8,133 @@
     x:DataType="vm:CartViewModel"
     Title="Seu pedido">
 
-    <Grid RowDefinitions="*,Auto">
+    <Grid
+        MaximumWidthRequest="720"
+        Padding="20"
+        HorizontalOptions="Fill"
+        RowDefinitions="*,Auto"
+        RowSpacing="16">
 
-        <!-- ========== ITENS ========== -->
         <CollectionView
-            Margin="20,16,20,0"
+            Grid.Row="0"
             ItemsSource="{Binding Cart.Items}"
             SelectionMode="None">
-
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
             </CollectionView.ItemsLayout>
 
-            <CollectionView.Footer>
-                <BoxView HeightRequest="16" Color="Transparent" />
-            </CollectionView.Footer>
-
             <CollectionView.EmptyView>
                 <VerticalStackLayout
-                    Padding="40"
+                    HorizontalOptions="Center"
                     Spacing="10"
                     VerticalOptions="Center">
                     <Label
-                        FontSize="60"
-                        HorizontalTextAlignment="Center"
+                        FontSize="56"
+                        HorizontalOptions="Center"
                         Text="🛒" />
                     <Label
-                        HorizontalTextAlignment="Center"
-                        StyleClass="title"
+                        HorizontalOptions="Center"
+                        Style="{StaticResource MzTitle}"
                         Text="Seu carrinho está vazio" />
                     <Label
-                        HorizontalTextAlignment="Center"
-                        StyleClass="muted"
-                        Text="Volte ao cardápio e escolha algo delicioso." />
-                    <Button
-                        Margin="0,14,0,0"
-                        Clicked="OnBackClicked"
                         HorizontalOptions="Center"
+                        Style="{StaticResource MzMuted}"
+                        Text="Volte ao cardápio e escolha alguns itens." />
+                    <Button
+                        Margin="0,8,0,0"
+                        Command="{Binding GoBackCommand}"
+                        HorizontalOptions="Center"
+                        Style="{StaticResource MzPrimaryButton}"
                         Text="Voltar ao cardápio" />
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:CartItem">
-                    <Border Padding="16" StyleClass="card">
+                    <Border Padding="16" Style="{StaticResource MzCard}">
                         <Grid
                             ColumnDefinitions="*,Auto"
                             ColumnSpacing="12"
                             RowDefinitions="Auto,Auto"
                             RowSpacing="12">
-
-                            <VerticalStackLayout Spacing="2">
-                                <Label
-                                    LineBreakMode="TailTruncation"
-                                    MaxLines="1"
-                                    StyleClass="name"
-                                    Text="{Binding Product.Name}" />
-                                <Label StyleClass="muted" Text="{Binding UnitPrice, StringFormat='R$ {0:N2} cada'}" />
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
+                                <Label Style="{StaticResource MzName}" Text="{Binding Product.Name}" />
+                                <Label Style="{StaticResource MzMuted}" Text="{Binding UnitPrice, StringFormat='{0:C2} cada'}" />
                             </VerticalStackLayout>
 
-                            <Label
-                                Grid.Column="1"
-                                StyleClass="price"
-                                Text="{Binding Subtotal, StringFormat='R$ {0:N2}'}"
-                                VerticalOptions="Start" />
+                            <Button
+    Grid.Row="0"
+    Grid.Column="1"
+    Command="{Binding BindingContext.RemoveCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+    CommandParameter="{Binding .}"
+    HeightRequest="36"
+    Style="{StaticResource MzGhostButton}"
+    Text="Remover" />
 
-                            <!-- Quantidade -->
-                            <HorizontalStackLayout Grid.Row="1" Spacing="14">
+                            <HorizontalStackLayout
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Spacing="12"
+                                VerticalOptions="Center">
                                 <Button
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CartViewModel}}, Path=DecreaseCommand}"
-                                    CommandParameter="{Binding .}"
-                                    StyleClass="stepper"
-                                    Text="−" />
+    Command="{Binding BindingContext.DecreaseCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+    CommandParameter="{Binding .}"
+    Style="{StaticResource MzQtyButton}"
+    Text="−" />
                                 <Label
-                                    FontFamily="OpenSansSemibold"
-                                    FontSize="17"
                                     HorizontalTextAlignment="Center"
-                                    MinimumWidthRequest="24"
+                                    MinimumWidthRequest="28"
+                                    Style="{StaticResource MzName}"
                                     Text="{Binding Quantity}"
                                     VerticalOptions="Center" />
                                 <Button
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CartViewModel}}, Path=IncreaseCommand}"
+                                    Command="{Binding IncreaseCommand, Source={StaticResource CartVM}}"
                                     CommandParameter="{Binding .}"
-                                    StyleClass="stepper"
+                                    Style="{StaticResource MzQtyButton}"
                                     Text="+" />
                             </HorizontalStackLayout>
 
-                            <Button
+                            <Label
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CartViewModel}}, Path=RemoveCommand}"
-                                CommandParameter="{Binding .}"
-                                HorizontalOptions="End"
-                                StyleClass="danger"
-                                Text="Remover" />
+                                Style="{StaticResource MzPrice}"
+                                Text="{Binding Subtotal, StringFormat='{0:C2}'}"
+                                VerticalOptions="Center" />
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- ========== RESUMO / AÇÕES (some quando o carrinho está vazio) ========== -->
-        <Border Grid.Row="1" StyleClass="footer">
-            <Border.Triggers>
-                <DataTrigger
-                    Binding="{Binding Cart.TotalCount}"
-                    TargetType="Border"
-                    Value="0">
-                    <Setter Property="IsVisible" Value="False" />
-                </DataTrigger>
-            </Border.Triggers>
-
-            <VerticalStackLayout Spacing="16">
+        <Border
+            Grid.Row="1"
+            Padding="20"
+            Style="{StaticResource MzCard}">
+            <VerticalStackLayout Spacing="12">
                 <Grid ColumnDefinitions="*,Auto">
-                    <VerticalStackLayout Spacing="2">
-                        <Label StyleClass="muted" Text="Total do pedido" />
-                        <Label StyleClass="muted" Text="{Binding Cart.TotalCount, StringFormat='{0} item(ns)'}" />
-                    </VerticalStackLayout>
+                    <Label
+                        Style="{StaticResource MzTitle}"
+                        Text="Total"
+                        VerticalOptions="Center" />
                     <Label
                         Grid.Column="1"
-                        FontFamily="OpenSansSemibold"
-                        FontSize="26"
-                        StyleClass="price"
-                        Text="{Binding Cart.TotalPrice, StringFormat='R$ {0:N2}'}"
-                        VerticalOptions="Center" />
+                        FontSize="24"
+                        Style="{StaticResource MzPrice}"
+                        Text="{Binding Cart.TotalPrice, StringFormat='{0:C2}'}" />
                 </Grid>
-
-                <Grid ColumnDefinitions="*,2*" ColumnSpacing="12">
-                    <Button
-                        Command="{Binding ClearCommand}"
-                        StyleClass="outline"
-                        Text="Limpar" />
-                    <Button
-                        Grid.Column="1"
-                        Clicked="OnCheckoutClicked"
-                        Text="Finalizar pedido" />
-                </Grid>
+                <Button
+                    HeightRequest="50"
+                    IsEnabled="False"
+                    Style="{StaticResource MzPrimaryButton}"
+                    Text="Finalizar pedido" />
+                <Label
+                    HorizontalTextAlignment="Center"
+                    Style="{StaticResource MzMuted}"
+                    Text="O envio para a cozinha será habilitado na próxima etapa (SignalR)." />
+                <Button
+                    Command="{Binding ClearCommand}"
+                    Style="{StaticResource MzGhostButton}"
+                    Text="Limpar carrinho" />
             </VerticalStackLayout>
         </Border>
     </Grid>

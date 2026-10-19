@@ -7,6 +7,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
     public partial class ProductItemViewModel : ObservableObject
     {
         private bool _imageRequested;
+        private int _flashId;
 
         public ProductItemViewModel(Product product) => Product = product;
 
@@ -17,6 +18,12 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         [ObservableProperty]
         private ImageSource? picture;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ButtonText))]
+        private bool isAdded;
+
+        public string ButtonText => IsAdded ? "Adicionado ✓" : "Adicionar";
 
         public void LoadImage()
         {
@@ -30,6 +37,16 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 CachingEnabled = true,
                 CacheValidity = TimeSpan.FromDays(1)
             };
+        }
+
+        /// <summary>Feedback visual curto no botão após adicionar ao carrinho.</summary>
+        public async Task FlashAddedAsync()
+        {
+            var id = ++_flashId;
+            IsAdded = true;
+            await Task.Delay(900);
+            if (id == _flashId)
+                IsAdded = false;
         }
     }
 }
