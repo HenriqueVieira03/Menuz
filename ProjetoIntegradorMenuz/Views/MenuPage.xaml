@@ -15,7 +15,7 @@
                 Grid.Row="0"
                 Padding="24,14"
                 BackgroundColor="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}"
-                ColumnDefinitions="Auto,*,Auto"
+                ColumnDefinitions="Auto,*,Auto,Auto"
                 ColumnSpacing="12">
                 <Border
                     BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}"
@@ -42,10 +42,19 @@
                     <Label Style="{StaticResource MzMuted}" Text="Peça direto da sua mesa" />
                 </VerticalStackLayout>
 
+                <!-- Botão de desenvolvimento: abre o painel da cozinha -->
+                <Button
+                    Grid.Column="2"
+                    Command="{Binding OpenKitchenCommand}"
+                    IsVisible="{Binding IsDevMode}"
+                    Style="{StaticResource MzGhostButton}"
+                    Text="👨‍🍳 Cozinha (DEV)"
+                    VerticalOptions="Center" />
+
                 <!-- Botão de Carrinho com Ícone Vetorial (Caminho SVG) -->
-                <Grid Grid.Column="2" 
-                      VerticalOptions="Center" 
-                      Padding="8" 
+                <Grid Grid.Column="3"
+                      VerticalOptions="Center"
+                      Padding="8"
                       BackgroundColor="Transparent">
 
                     <Grid.GestureRecognizers>

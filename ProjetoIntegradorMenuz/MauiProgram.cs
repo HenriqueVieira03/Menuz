@@ -35,6 +35,9 @@ namespace ProjetoIntegradorMenuz
             builder.Services.AddSingleton<MenuPage>();
             builder.Services.AddTransient<CartPage>();
 
+            builder.Services.AddTransient<KitchenViewModel>();
+            builder.Services.AddTransient<KitchenPage>();
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

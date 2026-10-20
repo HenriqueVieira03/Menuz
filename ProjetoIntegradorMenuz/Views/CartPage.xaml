@@ -141,7 +141,7 @@
                     HorizontalTextAlignment="Center"
                     Style="{StaticResource MzMuted}"
                     Text="O envio para a cozinha será habilitado na próxima etapa (SignalR)." />
-                <Button
+                <Button 
                     Command="{Binding ClearCommand}"
                     Style="{StaticResource MzGhostButton}"
                     Text="Limpar carrinho" />

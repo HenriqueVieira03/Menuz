@@ -69,6 +69,9 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
             SelectedCategory = chip.Category;
         }
+        [RelayCommand]
+        private async Task OpenKitchenAsync() =>
+    await Shell.Current.GoToAsync(nameof(KitchenPage));
 
         [RelayCommand]
         private async Task LoadAsync()

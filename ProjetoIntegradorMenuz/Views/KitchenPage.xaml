@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.KitchenPage"
+    x:Name="PageRoot"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
+    x:DataType="vm:KitchenViewModel"
+    Title="Cozinha"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="0">
+
+        <!-- Cabeçalho (mesmo padrão do cardápio) -->
+        <Grid
+            Grid.Row="0"
+            Padding="24,14"
+            BackgroundColor="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}"
+            ColumnDefinitions="Auto,*,Auto"
+            ColumnSpacing="12">
+            <Button
+                Command="{Binding GoBackCommand}"
+                Style="{StaticResource MzQtyButton}"
+                Text="←"
+                VerticalOptions="Center" />
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                <Label
+                    FontFamily="OpenSansSemibold"
+                    FontSize="22"
+                    Text="Cozinha"
+                    TextColor="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+                <Label Style="{StaticResource MzMuted}" Text="{Binding LastSyncText}" />
+            </VerticalStackLayout>
+            <Button
+                Grid.Column="2"
+                Command="{Binding SyncCommand}"
+                Style="{StaticResource MzPrimaryButton}"
+                Text="⟳  Sincronizar"
+                VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Mensagem de erro -->
+        <Label
+            Grid.Row="1"
+            Margin="24,12,24,0"
+            HorizontalTextAlignment="Center"
+            IsVisible="{Binding HasError}"
+            Style="{StaticResource MzMuted}"
+            Text="{Binding ErrorMessage}"
+            TextColor="{AppThemeBinding Light={StaticResource MzDestructiveLight}, Dark={StaticResource MzDestructiveDark}}" />
+
+        <Grid Grid.Row="2">
+            <CollectionView
+                x:Name="OrdersList"
+                Margin="20,16,20,0"
+                ItemSizingStrategy="MeasureAllItems"
+                ItemsSource="{Binding Orders}"
+                SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout
+                        x:Name="OrdersLayout"
+                        HorizontalItemSpacing="16"
+                        Orientation="Vertical"
+                        Span="3"
+                        VerticalItemSpacing="16" />
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout
+                        HorizontalOptions="Center"
+                        Spacing="10"
+                        VerticalOptions="Center">
+                        <Label FontSize="56" HorizontalOptions="Center" Text="🍳" />
+                        <Label
+                            HorizontalOptions="Center"
+                            Style="{StaticResource MzTitle}"
+                            Text="Nenhum pedido no momento" />
+                        <Label
+                            HorizontalOptions="Center"
+                            HorizontalTextAlignment="Center"
+                            Style="{StaticResource MzMuted}"
+                            Text="Os pedidos feitos pelos clientes aparecem aqui. Toque em Sincronizar para atualizar." />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="40" Color="Transparent" />
+                </CollectionView.Footer>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OrderCardViewModel">
+                        <Border Padding="16" Style="{StaticResource MzCard}">
+                            <VerticalStackLayout Spacing="12">
+
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" />
+                                        <Label Style="{StaticResource MzMuted}" Text="{Binding TimeText, StringFormat='Recebido às {0}'}" />
+                                    </VerticalStackLayout>
+
+                                    <!-- Selo de status -->
+                                    <Border
+                                        Grid.Column="1"
+                                        Padding="12,6"
+                                        Style="{StaticResource MzChip}"
+                                        VerticalOptions="Start">
+                                        <Border.Triggers>
+                                            <DataTrigger Binding="{Binding IsPreparing}" TargetType="Border" Value="True">
+                                                <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsReady}" TargetType="Border" Value="True">
+                                                <Setter Property="Stroke" Value="{StaticResource MzSuccess}" />
+                                                <Setter Property="BackgroundColor" Value="{StaticResource MzSuccess}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Label
+                                            FontFamily="OpenSansSemibold"
+                                            FontSize="13"
+                                            Text="{Binding StatusText}"
+                                            TextColor="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}">
+                                            <Label.Triggers>
+                                                <DataTrigger Binding="{Binding IsPreparing}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsReady}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="{StaticResource MzOnPrimary}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </Grid>
+
+                                <BoxView
+                                    HeightRequest="1"
+                                    Color="{AppThemeBinding Light={StaticResource MzBorderLight}, Dark={StaticResource MzBorderDark}}" />
+
+                                <!-- Itens do pedido -->
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="6">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:OrderLineViewModel">
+                                            <Label
+                                                FontSize="15"
+                                                MaxLines="3"
+                                                Style="{StaticResource MzName}"
+                                                Text="{Binding Text}" />
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+
+                                <BoxView
+                                    HeightRequest="1"
+                                    Color="{AppThemeBinding Light={StaticResource MzBorderLight}, Dark={StaticResource MzBorderDark}}" />
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label
+                                        Style="{StaticResource MzMuted}"
+                                        Text="Total"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        Grid.Column="1"
+                                        Style="{StaticResource MzPrice}"
+                                        Text="{Binding Total, StringFormat='{0:C2}'}" />
+                                </Grid>
+
+                                <Button
+                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.AdvanceCommand}"
+                                    CommandParameter="{Binding .}"
+                                    HeightRequest="46"
+                                    Style="{StaticResource MzPrimaryButton}"
+                                    Text="{Binding ActionText}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <ActivityIndicator
+                HorizontalOptions="Center"
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}"
+                VerticalOptions="Start"
+                Margin="0,24,0,0"
+                Color="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+        </Grid>
+    </Grid>
+</ContentPage>

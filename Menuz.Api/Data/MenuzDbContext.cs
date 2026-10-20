@@ -10,7 +10,8 @@ public class MenuzDbContext(DbContextOptions<MenuzDbContext> options) : DbContex
     public DbSet<ProductSize> ProductSizes => Set<ProductSize>();
     public DbSet<ProductAddon> ProductAddons => Set<ProductAddon>();
     public DbSet<ProductIngredient> ProductIngredients => Set<ProductIngredient>();
-
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     protected override void OnModelCreating(ModelBuilder mb)
     {
         mb.Entity<Category>(e =>
@@ -52,6 +53,20 @@ public class MenuzDbContext(DbContextOptions<MenuzDbContext> options) : DbContex
             e.Property(x => x.Name).HasMaxLength(60).IsRequired();
             e.HasOne<Product>().WithMany(p => p.Ingredients)
              .HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        mb.Entity<Order>(e =>
+        {
+            e.Property(x => x.Total).HasPrecision(10, 2);
+            e.HasIndex(x => x.Status);
+            e.HasMany(x => x.Items).WithOne()
+             .HasForeignKey(i => i.OrderId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        mb.Entity<OrderItem>(e =>
+        {
+            e.Property(x => x.ProductName).HasMaxLength(120).IsRequired();
+            e.Property(x => x.UnitPrice).HasPrecision(10, 2);
         });
     }
 }
