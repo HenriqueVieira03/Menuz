@@ -12,11 +12,19 @@
         MaximumWidthRequest="720"
         Padding="20"
         HorizontalOptions="Fill"
-        RowDefinitions="*,Auto"
+        RowDefinitions="Auto,*,Auto"
         RowSpacing="16">
 
-        <CollectionView
+        <Button
             Grid.Row="0"
+            Command="{Binding GoBackCommand}"
+            HorizontalOptions="Start"
+            Style="{StaticResource MzGhostButton}"
+            Text="&#x2190; Voltar ao cardápio"
+            Margin="0,0,0,10" />
+
+        <CollectionView
+            Grid.Row="1"
             ItemsSource="{Binding Cart.Items}"
             SelectionMode="None">
             <CollectionView.ItemsLayout>
@@ -63,13 +71,13 @@
                             </VerticalStackLayout>
 
                             <Button
-    Grid.Row="0"
-    Grid.Column="1"
-    Command="{Binding BindingContext.RemoveCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-    CommandParameter="{Binding .}"
-    HeightRequest="36"
-    Style="{StaticResource MzGhostButton}"
-    Text="Remover" />
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Command="{Binding BindingContext.RemoveCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                CommandParameter="{Binding .}"
+                                HeightRequest="36"
+                                Style="{StaticResource MzGhostButton}"
+                                Text="Remover" />
 
                             <HorizontalStackLayout
                                 Grid.Row="1"
@@ -77,10 +85,10 @@
                                 Spacing="12"
                                 VerticalOptions="Center">
                                 <Button
-    Command="{Binding BindingContext.DecreaseCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-    CommandParameter="{Binding .}"
-    Style="{StaticResource MzQtyButton}"
-    Text="−" />
+                                    Command="{Binding BindingContext.DecreaseCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                    CommandParameter="{Binding .}"
+                                    Style="{StaticResource MzQtyButton}"
+                                    Text="−" />
                                 <Label
                                     HorizontalTextAlignment="Center"
                                     MinimumWidthRequest="28"
@@ -88,7 +96,7 @@
                                     Text="{Binding Quantity}"
                                     VerticalOptions="Center" />
                                 <Button
-                                    Command="{Binding IncreaseCommand, Source={StaticResource CartVM}}"
+                                    Command="{Binding BindingContext.IncreaseCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                     CommandParameter="{Binding .}"
                                     Style="{StaticResource MzQtyButton}"
                                     Text="+" />
@@ -107,7 +115,7 @@
         </CollectionView>
 
         <Border
-            Grid.Row="1"
+            Grid.Row="2"
             Padding="20"
             Style="{StaticResource MzCard}">
             <VerticalStackLayout Spacing="12">
@@ -124,9 +132,11 @@
                 </Grid>
                 <Button
                     HeightRequest="50"
-                    IsEnabled="False"
+                    x:Name="FinalizarPedido"
+                    IsEnabled="True"
+                    Clicked="FinalizarPedido_Clicked"
                     Style="{StaticResource MzPrimaryButton}"
-                    Text="Finalizar pedido" />
+                    Text="Finalizar pedido"/>       
                 <Label
                     HorizontalTextAlignment="Center"
                     Style="{StaticResource MzMuted}"

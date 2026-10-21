@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProjetoIntegradorMenuz.Views.OrderSuccessPage"
+             Title="Pedido Confirmado"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource MzBackgroundLight}, Dark={StaticResource MzBackgroundDark}}">
+
+    <Grid Padding="20" HorizontalOptions="Center" VerticalOptions="Center">
+        <Border Padding="40,50" Style="{StaticResource MzCard}" MaximumWidthRequest="500">
+            <VerticalStackLayout Spacing="20" HorizontalOptions="Center">
+
+                <Label Text="✅" FontSize="80" HorizontalOptions="Center" />
+
+                <Label Text="Pedido realizado!" 
+                       Style="{StaticResource MzTitle}" 
+                       FontSize="28" 
+                       HorizontalOptions="Center" 
+                       HorizontalTextAlignment="Center" />
+
+                <Label Text="Seu pedido já foi enviado para a cozinha e logo chegará na sua mesa." 
+                       Style="{StaticResource MzMuted}" 
+                       FontSize="16" 
+                       HorizontalOptions="Center" 
+                       HorizontalTextAlignment="Center" />
+
+                <Border BackgroundColor="#E6F4EA" Padding="15" StrokeShape="RoundRectangle 8" Stroke="Transparent" Margin="0,10">
+                    <Label Text="⏱️ Tempo estimado: 20 a 30 minutos" 
+                           TextColor="#137333" 
+                           FontFamily="OpenSansSemibold" 
+                           FontSize="16" 
+                           HorizontalOptions="Center" />
+                </Border>
+
+                <Button Text="Voltar ao Cardápio" 
+                        x:Name="VoltarMenu"
+                        Clicked="VoltarMenu_Clicked" 
+                        Style="{StaticResource MzPrimaryButton}" 
+                        HeightRequest="50" 
+                        Margin="0,20,0,0" />
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

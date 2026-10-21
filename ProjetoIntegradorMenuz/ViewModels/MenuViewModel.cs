@@ -38,6 +38,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(HasError))]
         private string? errorMessage;
 
+        // Quando a categoria "Todos" estiver selecionada, o título ficará "Todos"
         public string SectionTitle => SelectedCategory?.Name ?? string.Empty;
         public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
@@ -83,9 +84,27 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
                 _cache.Clear();
                 Chips.Clear();
+
+                // 1. Pega todos os produtos de todas as categorias recebidas
+                var todosProdutos = menu.SelectMany(c => c.Products).ToList();
+
+                // 2. Cria uma categoria fictícia "Todos"
+                var categoriaTodos = new Category
+                {
+                    Id = 0,
+                    Name = "Todos",
+                    Products = todosProdutos
+                    
+                };
+
+                // 3. Adiciona "Todos" como o primeiro botão da lista
+                Chips.Add(new CategoryChipViewModel(categoriaTodos));
+
+                // 4. Adiciona o resto das categorias originais
                 foreach (var category in menu)
                     Chips.Add(new CategoryChipViewModel(category));
 
+                // Seleciona a categoria "Todos" por padrão ao abrir o app
                 SelectCategory(Chips.FirstOrDefault());
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
