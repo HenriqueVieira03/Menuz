@@ -23,6 +23,41 @@ namespace Menuz.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Menuz.Api.Models.Bill", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("TableNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("TotalPaid")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TableNumber")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Open'");
+
+                    b.ToTable("Bills");
+                });
+
             modelBuilder.Entity("Menuz.Api.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -54,6 +89,9 @@ namespace Menuz.Api.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BillId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("timestamp with time zone");
@@ -87,6 +125,8 @@ namespace Menuz.Api.Migrations
                         .HasColumnType("numeric(10,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BillId");
 
                     b.HasIndex("Status");
 
@@ -303,6 +343,16 @@ namespace Menuz.Api.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Menuz.Api.Models.Order", b =>
+                {
+                    b.HasOne("Menuz.Api.Models.Bill", "Bill")
+                        .WithMany("Orders")
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Bill");
+                });
+
             modelBuilder.Entity("Menuz.Api.Models.OrderItem", b =>
                 {
                     b.HasOne("Menuz.Api.Models.Order", null)
@@ -348,6 +398,11 @@ namespace Menuz.Api.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Menuz.Api.Models.Bill", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("Menuz.Api.Models.Category", b =>

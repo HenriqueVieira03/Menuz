@@ -28,7 +28,8 @@ public record OrderItemDto(
     decimal UnitPrice,
     int Quantity);
 
-public record OrderDto(int Id, int TableNumber, DateTime CreatedAt, OrderStatus Status, decimal Total, List<OrderItemDto> Items);
+public record OrderDto(
+    int Id, int TableNumber, DateTime CreatedAt, OrderStatus Status, decimal Total, List<OrderItemDto> Items, int? BillId = null);
 
 /// <summary>Estatística descritiva dos tempos de entrega à cozinha, em milissegundos.</summary>
 public record LatencyStatsDto(int Samples, double AverageMs, double MedianMs, double P95Ms, double MaxMs, double PercentUnder2s);
@@ -52,5 +53,6 @@ public static class OrderMappings
                .Select(i => new OrderItemDto(
                    i.Id, i.ProductId, i.ProductName, i.SizeName,
                    i.Addons, i.RemovedIngredients, i.Notes, i.UnitPrice, i.Quantity))
-               .ToList());
+               .ToList(),
+        o.BillId);
 }

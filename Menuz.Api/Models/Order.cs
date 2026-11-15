@@ -34,6 +34,10 @@ public class Order
     /// <summary>Mesa de onde o pedido foi feito (configurada no tablet).</summary>
     public int TableNumber { get; set; }
 
+    /// <summary>Conta (sessão da mesa) a que o pedido pertence. Nula só nos pedidos criados antes das contas existirem.</summary>
+    public int? BillId { get; set; }
+    public Bill? Bill { get; set; }
+
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
     // Horários de cada mudança de status (relógio do servidor, UTC): base dos indicadores do PDV.

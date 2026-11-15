@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Menuz.Api.Controllers;
 
@@ -55,8 +56,12 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
             items.Add(item!);
         }
 
+        // Todo pedido entra na conta aberta da mesa (e abre uma nova se não houver).
+        var bill = await GetOrOpenBillAsync(request.TableNumber, ct);
+
         var order = new Order
         {
+            BillId = bill.Id,
             TableNumber = request.TableNumber,
             ClientSentAt = request.ClientSentAt?.ToUniversalTime(),
             Items = items
@@ -219,6 +224,31 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
             UnitPrice = product.BasePrice + (size?.PriceDelta ?? 0) + addons.Sum(a => a.Price),
             Quantity = line.Quantity
         }, null);
+    }
+
+    /// <summary>
+    /// Devolve a conta aberta da mesa ou cria uma. Se dois tablets da mesma mesa pedirem ao mesmo tempo,
+    /// o índice único do banco recusa a segunda conta e usamos a que o outro tablet acabou de abrir.
+    /// </summary>
+    private async Task<Bill> GetOrOpenBillAsync(int tableNumber, CancellationToken ct)
+    {
+        var bill = await db.Bills.FirstOrDefaultAsync(
+            b => b.TableNumber == tableNumber && b.Status == BillStatus.Open, ct);
+        if (bill is not null) return bill;
+
+        bill = new Bill { TableNumber = tableNumber };
+        db.Bills.Add(bill);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+            return bill;
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            db.Entry(bill).State = EntityState.Detached;
+            return await db.Bills.FirstAsync(
+                b => b.TableNumber == tableNumber && b.Status == BillStatus.Open, ct);
+        }
     }
 
     private IQueryable<LatencyRow> LatencyQuery(DateTime? from, DateTime? to)

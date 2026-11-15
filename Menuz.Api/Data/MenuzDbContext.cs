@@ -13,6 +13,7 @@ public class MenuzDbContext(DbContextOptions<MenuzDbContext> options) : DbContex
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Bill> Bills => Set<Bill>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -72,6 +73,18 @@ public class MenuzDbContext(DbContextOptions<MenuzDbContext> options) : DbContex
             e.HasIndex(x => x.Status);
             e.HasMany(x => x.Items).WithOne()
              .HasForeignKey(i => i.OrderId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        mb.Entity<Bill>(e =>
+        {
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20); // grava "Open"/"Paid", legível no banco
+            e.Property(x => x.TotalPaid).HasPrecision(10, 2);
+
+            // No máximo UMA conta aberta por mesa (vale mesmo se dois tablets pedirem ao mesmo tempo).
+            e.HasIndex(x => x.TableNumber).IsUnique().HasFilter("\"Status\" = 'Open'");
+
+            e.HasMany(x => x.Orders).WithOne(o => o.Bill)
+             .HasForeignKey(o => o.BillId).OnDelete(DeleteBehavior.Restrict);
         });
 
         mb.Entity<OrderItem>(e =>
