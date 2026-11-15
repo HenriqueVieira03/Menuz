@@ -17,19 +17,32 @@ namespace ProjetoIntegradorMenuz.Services
         }
 
         /// <summary>POST /api/orders: grava o pedido do cliente para a cozinha.</summary>
-        public async Task<OrderDto> CreateOrderAsync(IEnumerable<CartItem> items, CancellationToken ct = default)
+        /// <exception cref="OrderRejectedException">A API recusou o pedido (ex.: item esgotado); a mensagem pode ser mostrada ao cliente.</exception>
+        public async Task<OrderDto> CreateOrderAsync(int tableNumber, IEnumerable<CartItem> items, CancellationToken ct = default)
         {
             var request = new CreateOrderRequest
             {
+                TableNumber = tableNumber,
                 ClientSentAt = DateTime.UtcNow,
                 Items = items.Select(i => new CreateOrderItemRequest
                 {
                     ProductId = i.Product.Id,
-                    Quantity = i.Quantity
+                    Quantity = i.Quantity,
+                    SizeId = i.Size?.Id,
+                    AddonIds = i.Addons.Select(a => a.Id).ToList(),
+                    RemovedIngredientIds = i.RemovedIngredients.Select(r => r.Id).ToList(),
+                    Notes = i.Notes
                 }).ToList()
             };
 
             var response = await _http.PostAsJsonAsync("api/orders", request, ct);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var message = (await response.Content.ReadAsStringAsync(ct)).Trim().Trim('"');
+                throw new OrderRejectedException(string.IsNullOrWhiteSpace(message) ? "Pedido recusado pelo servidor." : message);
+            }
+
             response.EnsureSuccessStatusCode();
 
             return (await response.Content.ReadFromJsonAsync<OrderDto>(cancellationToken: ct))!;

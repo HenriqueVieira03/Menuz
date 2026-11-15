@@ -27,6 +27,7 @@ namespace ProjetoIntegradorMenuz
             builder.Services.AddSingleton<MenuApiService>();
             builder.Services.AddSingleton<CartService>();
             builder.Services.AddSingleton<OrderHubClient>();
+            builder.Services.AddSingleton<TableService>();
 
             // ViewModels
             builder.Services.AddSingleton<MenuViewModel>();

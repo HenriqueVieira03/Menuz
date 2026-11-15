@@ -9,13 +9,15 @@ namespace ProjetoIntegradorMenuz.ViewModels
     {
         private readonly MenuApiService _api;
 
-        public CartViewModel(CartService cart, MenuApiService api)
+        public CartViewModel(CartService cart, MenuApiService api, TableService table)
         {
             Cart = cart;
             _api = api;
+            Table = table;
         }
 
         public CartService Cart { get; }
+        public TableService Table { get; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotSubmitting))]
@@ -51,13 +53,18 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public async Task<string?> SubmitOrderAsync()
         {
             if (IsSubmitting) return "Envio em andamento.";
+            if (Table.TableNumber is not { } table) return "Defina o número da mesa antes de enviar o pedido.";
 
             IsSubmitting = true;
             try
             {
-                await _api.CreateOrderAsync(Cart.Items.ToList());
+                await _api.CreateOrderAsync(table, Cart.Items.ToList());
                 Cart.Clear();
                 return null;
+            }
+            catch (OrderRejectedException ex)
+            {
+                return ex.Message; // ex.: item ficou indisponível
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {

@@ -14,13 +14,29 @@ namespace ProjetoIntegradorMenuz.ViewModels
         // Cache dos itens por categoria: trocar de aba não recria views nem baixa imagens de novo.
         private readonly Dictionary<int, IReadOnlyList<ProductItemViewModel>> _cache = new();
 
-        public MenuViewModel(MenuApiService api, CartService cart)
+        public MenuViewModel(MenuApiService api, CartService cart, TableService table)
         {
             _api = api;
             Cart = cart;
+            Table = table;
         }
 
         public CartService Cart { get; }
+        public TableService Table { get; }
+
+#if DEBUG
+        /// <summary>Mostra o atalho para a tela da cozinha só em builds de desenvolvimento.</summary>
+        public bool IsDevMode => true;
+#else
+        public bool IsDevMode => false;
+#endif
+
+        /// <summary>Produto aberto no popup de personalização (null = popup fechado).</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsCustomizing))]
+        private ProductCustomizationViewModel? customization;
+
+        public bool IsCustomizing => Customization is not null;
         public ObservableCollection<CategoryChipViewModel> Chips { get; } = new();
 
         // A lista é trocada de uma vez só (uma notificação), em vez de Clear + Add item a item.
@@ -120,13 +136,52 @@ namespace ProjetoIntegradorMenuz.ViewModels
             }
         }
 
+        /// <summary>
+        /// Botão "Adicionar" do card: se o produto tem escolhas, abre o popup;
+        /// senão adiciona direto (com o tamanho único, se houver).
+        /// </summary>
         [RelayCommand]
         private void AddToCart(ProductItemViewModel? item)
         {
             if (item is null) return;
 
-            Cart.Add(item.Product);
+            if (item.NeedsChoices)
+            {
+                OpenProduct(item);
+                return;
+            }
+
+            Cart.Add(new CartItem(item.Product, size: item.Product.Sizes.FirstOrDefault()));
             _ = item.FlashAddedAsync();
+        }
+
+        /// <summary>Toque no card: abre os detalhes/personalização do produto.</summary>
+        [RelayCommand]
+        private void OpenProduct(ProductItemViewModel? item)
+        {
+            if (item is null) return;
+            item.LoadImage();
+            Customization = new ProductCustomizationViewModel(item);
+        }
+
+        [RelayCommand]
+        private void CloseProduct() => Customization = null;
+
+        [RelayCommand]
+        private void ConfirmProduct()
+        {
+            if (Customization is null) return;
+
+            Cart.Add(Customization.BuildCartItem());
+            _ = Customization.Item.FlashAddedAsync();
+            Customization = null;
+        }
+
+        [RelayCommand]
+        private async Task SetTableAsync()
+        {
+            if (Shell.Current?.CurrentPage is { } page)
+                await Table.PromptAsync(page);
         }
 
         [RelayCommand]

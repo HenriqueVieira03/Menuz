@@ -66,6 +66,8 @@ public class MenuzDbContext(DbContextOptions<MenuzDbContext> options) : DbContex
         mb.Entity<OrderItem>(e =>
         {
             e.Property(x => x.ProductName).HasMaxLength(120).IsRequired();
+            e.Property(x => x.SizeName).HasMaxLength(60);
+            e.Property(x => x.Notes).HasMaxLength(OrderRules.NotesMaxLength);
             e.Property(x => x.UnitPrice).HasPrecision(10, 2);
         });
     }

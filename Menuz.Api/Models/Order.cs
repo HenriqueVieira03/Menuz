@@ -9,6 +9,13 @@ public enum OrderStatus
     Cancelled = 4
 }
 
+public static class OrderRules
+{
+    public const int MaxTableNumber = 999;
+    public const int NotesMaxLength = 200;
+    public const int MaxQuantityPerItem = 50;
+}
+
 public class Order
 {
     public int Id { get; set; }
@@ -24,18 +31,38 @@ public class Order
     /// <summary>Momento em que a primeira tela da cozinha confirmou que exibiu o pedido (relógio do servidor, UTC).</summary>
     public DateTime? KitchenReceivedAt { get; set; }
 
+    /// <summary>Mesa de onde o pedido foi feito (configurada no tablet).</summary>
+    public int TableNumber { get; set; }
+
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public decimal Total { get; set; }
     public List<OrderItem> Items { get; set; } = new();
 }
 
-/// <summary>Item do pedido com "foto" do nome e do preço no momento da compra.</summary>
+/// <summary>
+/// Item do pedido com "foto" do nome, das escolhas e do preço no momento da compra.
+/// Guardar os nomes (e não só os ids) mantém o histórico correto mesmo se o cardápio mudar depois.
+/// </summary>
 public class OrderItem
 {
     public int Id { get; set; }
     public int OrderId { get; set; }
     public int ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
+
+    /// <summary>Tamanho escolhido (null quando o produto não tem tamanhos).</summary>
+    public string? SizeName { get; set; }
+
+    /// <summary>Nomes dos adicionais escolhidos.</summary>
+    public List<string> Addons { get; set; } = new();
+
+    /// <summary>Nomes dos ingredientes que o cliente pediu para retirar.</summary>
+    public List<string> RemovedIngredients { get; set; } = new();
+
+    /// <summary>Observação livre do cliente (ex.: "bem passado").</summary>
+    public string? Notes { get; set; }
+
+    /// <summary>Preço unitário final = preço base + acréscimo do tamanho + adicionais.</summary>
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }
 }

@@ -15,7 +15,7 @@
                 Grid.Row="0"
                 Padding="24,14"
                 BackgroundColor="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}"
-                ColumnDefinitions="Auto,*,Auto,Auto"
+                ColumnDefinitions="Auto,*,Auto,Auto,Auto"
                 ColumnSpacing="12">
                 <Border
                     BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}"
@@ -42,9 +42,33 @@
                     <Label Style="{StaticResource MzMuted}" Text="Peça direto da sua mesa" />
                 </VerticalStackLayout>
 
+                <!-- Mesa deste tablet (toque para configurar) -->
+                <Border
+                    Grid.Column="2"
+                    Padding="14,8"
+                    Style="{StaticResource MzChip}"
+                    VerticalOptions="Center">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SetTableCommand}" />
+                    </Border.GestureRecognizers>
+                    <Border.Triggers>
+                        <DataTrigger
+                            Binding="{Binding Table.IsConfigured}"
+                            TargetType="Border"
+                            Value="True">
+                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Label
+                        FontFamily="OpenSansSemibold"
+                        Style="{StaticResource MzChipLabel}"
+                        Text="{Binding Table.DisplayText, StringFormat='🪑 {0}'}" />
+                </Border>
+
                 <!-- Botão de desenvolvimento: abre o painel da cozinha -->
                 <Button
-                    Grid.Column="2"
+                    Grid.Column="3"
                     Command="{Binding OpenKitchenCommand}"
                     IsVisible="{Binding IsDevMode}"
                     Style="{StaticResource MzGhostButton}"
@@ -52,7 +76,7 @@
                     VerticalOptions="Center" />
 
                 <!-- Botão de Carrinho com Ícone Vetorial (Caminho SVG) -->
-                <Grid Grid.Column="3"
+                <Grid Grid.Column="4"
                       VerticalOptions="Center"
                       Padding="8"
                       BackgroundColor="Transparent">
@@ -175,7 +199,9 @@
                                 Style="{StaticResource MzCard}">
 
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="CardProduto_Tapped" />
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.OpenProductCommand}"
+                                        CommandParameter="{Binding .}" />
                                 </Border.GestureRecognizers>
 
                                 <Grid RowDefinitions="150,Auto,44,Auto" RowSpacing="4">
@@ -211,7 +237,7 @@
                                         ColumnDefinitions="*,Auto">
                                         <Label
                                             Style="{StaticResource MzPrice}"
-                                            Text="{Binding Price, StringFormat='{0:C2}'}"
+                                            Text="{Binding PriceText}"
                                             VerticalOptions="Center" />
                                         <Button
                                             Grid.Column="1"
@@ -306,34 +332,219 @@
             </Grid>
         </Grid>
 
-        <Grid x:Name="PopupProduto" IsVisible="False" BackgroundColor="#99000000">
-            <Border BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource MzCardDark}}"
-                    Padding="0" Margin="20" VerticalOptions="Center" HorizontalOptions="Center"
-                    MaximumWidthRequest="450" StrokeShape="RoundRectangle 16">
-                <VerticalStackLayout>
-                    <Grid HeightRequest="250">
-                        <Image x:Name="PopupImagem" Aspect="AspectFill" />
-                        <Button Text="✕" Clicked="FecharPopup_Clicked"
-                                HorizontalOptions="End" VerticalOptions="Start"
-                                Margin="10" WidthRequest="40" HeightRequest="40"
-                                CornerRadius="20" BackgroundColor="#80000000"
-                                TextColor="White" Padding="0"/>
+        <!-- Popup de detalhes e personalização do produto -->
+        <Grid x:Name="PopupProduto" IsVisible="{Binding IsCustomizing}">
+            <!-- Fundo escurecido: tocar fora fecha -->
+            <BoxView Color="#99000000">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CloseProductCommand}" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+
+            <Border
+                x:Name="PopupCard"
+                Margin="20"
+                Padding="0"
+                x:DataType="vm:ProductCustomizationViewModel"
+                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource MzCardDark}}"
+                BindingContext="{Binding Customization}"
+                HorizontalOptions="Center"
+                MaximumWidthRequest="520"
+                StrokeShape="RoundRectangle 16"
+                VerticalOptions="Center">
+                <Grid RowDefinitions="*,Auto">
+
+                    <ScrollView Grid.Row="0">
+                        <VerticalStackLayout>
+                            <Grid HeightRequest="220">
+                                <BoxView Color="{AppThemeBinding Light={StaticResource MzMutedLight}, Dark={StaticResource MzMutedDark}}" />
+                                <Label
+                                    FontSize="48"
+                                    HorizontalOptions="Center"
+                                    Text="🍽️"
+                                    VerticalOptions="Center" />
+                                <Image Aspect="AspectFill" Source="{Binding Picture}" />
+                                <Button
+                                    Margin="10"
+                                    Padding="0"
+                                    BackgroundColor="#80000000"
+                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.CloseProductCommand}"
+                                    CornerRadius="20"
+                                    HeightRequest="40"
+                                    HorizontalOptions="End"
+                                    Text="✕"
+                                    TextColor="White"
+                                    VerticalOptions="Start"
+                                    WidthRequest="40" />
+                            </Grid>
+
+                            <VerticalStackLayout Padding="24,20" Spacing="18">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label
+                                        FontSize="24"
+                                        Style="{StaticResource MzTitle}"
+                                        Text="{Binding Name}" />
+                                    <Label
+                                        LineBreakMode="WordWrap"
+                                        Style="{StaticResource MzMuted}"
+                                        Text="{Binding Description}" />
+                                </VerticalStackLayout>
+
+                                <!-- Tamanho: escolha única -->
+                                <VerticalStackLayout IsVisible="{Binding HasSizes}" Spacing="10">
+                                    <Label Style="{StaticResource MzName}" Text="Tamanho" />
+                                    <FlexLayout
+                                        AlignItems="Start"
+                                        BindableLayout.ItemsSource="{Binding Sizes}"
+                                        Direction="Row"
+                                        Wrap="Wrap">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:OptionViewModel">
+                                                <Border
+                                                    Margin="0,0,10,10"
+                                                    Padding="16,10"
+                                                    Style="{StaticResource MzChip}">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer
+                                                            Command="{Binding Source={x:Reference PopupCard}, Path=BindingContext.SelectSizeCommand}"
+                                                            CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                    <Border.Triggers>
+                                                        <DataTrigger
+                                                            Binding="{Binding IsSelected}"
+                                                            TargetType="Border"
+                                                            Value="True">
+                                                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+                                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+                                                    <VerticalStackLayout HorizontalOptions="Center">
+                                                        <Label
+                                                            HorizontalTextAlignment="Center"
+                                                            Style="{StaticResource MzChipLabel}"
+                                                            Text="{Binding Name}" />
+                                                        <Label
+                                                            FontSize="12"
+                                                            HorizontalTextAlignment="Center"
+                                                            IsVisible="{Binding HasPrice}"
+                                                            Style="{StaticResource MzMuted}"
+                                                            Text="{Binding PriceText}" />
+                                                    </VerticalStackLayout>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+                                </VerticalStackLayout>
+
+                                <!-- Adicionais: vários -->
+                                <VerticalStackLayout IsVisible="{Binding HasAddons}" Spacing="4">
+                                    <Label Style="{StaticResource MzName}" Text="Adicionais" />
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Addons}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:OptionViewModel">
+                                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                                    <Grid.GestureRecognizers>
+                                                        <TapGestureRecognizer
+                                                            Command="{Binding Source={x:Reference PopupCard}, Path=BindingContext.ToggleCommand}"
+                                                            CommandParameter="{Binding .}" />
+                                                    </Grid.GestureRecognizers>
+                                                    <CheckBox
+                                                        InputTransparent="True"
+                                                        IsChecked="{Binding IsSelected}"
+                                                        Color="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}"
+                                                        VerticalOptions="Center" />
+                                                    <Label
+                                                        Grid.Column="1"
+                                                        Text="{Binding Name}"
+                                                        VerticalOptions="Center" />
+                                                    <Label
+                                                        Grid.Column="2"
+                                                        Style="{StaticResource MzMuted}"
+                                                        Text="{Binding PriceText}"
+                                                        VerticalOptions="Center" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+
+                                <!-- Ingredientes: desmarcar = pedir sem -->
+                                <VerticalStackLayout IsVisible="{Binding HasIngredients}" Spacing="4">
+                                    <Label Style="{StaticResource MzName}" Text="Ingredientes" />
+                                    <Label
+                                        FontSize="13"
+                                        Style="{StaticResource MzMuted}"
+                                        Text="Desmarque o que você quer retirar." />
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ingredients}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:OptionViewModel">
+                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                                    <Grid.GestureRecognizers>
+                                                        <TapGestureRecognizer
+                                                            Command="{Binding Source={x:Reference PopupCard}, Path=BindingContext.ToggleCommand}"
+                                                            CommandParameter="{Binding .}" />
+                                                    </Grid.GestureRecognizers>
+                                                    <CheckBox
+                                                        InputTransparent="True"
+                                                        IsChecked="{Binding IsSelected}"
+                                                        Color="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}"
+                                                        VerticalOptions="Center" />
+                                                    <Label
+                                                        Grid.Column="1"
+                                                        Text="{Binding Name}"
+                                                        VerticalOptions="Center" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+
+                                <!-- Observação -->
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzName}" Text="Observação" />
+                                    <Border Padding="10,2" Style="{StaticResource MzCard}">
+                                        <Editor
+                                            AutoSize="TextChanges"
+                                            MaxLength="{Binding NotesMaxLength}"
+                                            MinimumHeightRequest="44"
+                                            Placeholder="Ex.: carne bem passada"
+                                            Text="{Binding Notes, Mode=TwoWay}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <!-- Rodapé fixo: quantidade e adicionar -->
+                    <Grid
+                        Grid.Row="1"
+                        Padding="24,14,24,20"
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="16">
+                        <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
+                            <Button
+                                Command="{Binding DecreaseCommand}"
+                                Style="{StaticResource MzQtyButton}"
+                                Text="−" />
+                            <Label
+                                HorizontalTextAlignment="Center"
+                                MinimumWidthRequest="28"
+                                Style="{StaticResource MzName}"
+                                Text="{Binding Quantity}"
+                                VerticalOptions="Center" />
+                            <Button
+                                Command="{Binding IncreaseCommand}"
+                                Style="{StaticResource MzQtyButton}"
+                                Text="+" />
+                        </HorizontalStackLayout>
+                        <Button
+                            Grid.Column="1"
+                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ConfirmProductCommand}"
+                            HeightRequest="50"
+                            Style="{StaticResource MzPrimaryButton}"
+                            Text="{Binding AddButtonText}" />
                     </Grid>
-                    <VerticalStackLayout Padding="24" Spacing="12">
-                        <Label x:Name="PopupNome" Style="{StaticResource MzTitle}" FontSize="24" />
-                        <Label x:Name="PopupDescricao" Style="{StaticResource MzMuted}" LineBreakMode="WordWrap" />
-                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E0E0E0, Dark=#333333}" Margin="0,10" />
-                        <Grid ColumnDefinitions="*, Auto">
-                            <Label Text="Quantidade:" VerticalOptions="Center" Style="{StaticResource MzName}" />
-                            <HorizontalStackLayout Grid.Column="1" Spacing="12" VerticalOptions="Center">
-                                <Button Text="−" Style="{StaticResource MzQtyButton}" Clicked="PopupMenos_Clicked" />
-                                <Label x:Name="PopupQuantidadeText" Text="1" MinimumWidthRequest="28" HorizontalTextAlignment="Center" Style="{StaticResource MzName}" VerticalOptions="Center" />
-                                <Button Text="+" Style="{StaticResource MzQtyButton}" Clicked="PopupMais_Clicked" />
-                            </HorizontalStackLayout>
-                        </Grid>
-                        <Button x:Name="PopupBtnAdicionar" Clicked="PopupAdicionar_Clicked" Text="Adicionar" Margin="0,10,0,0" HeightRequest="50" Style="{StaticResource MzPrimaryButton}" />
-                    </VerticalStackLayout>
-                </VerticalStackLayout>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

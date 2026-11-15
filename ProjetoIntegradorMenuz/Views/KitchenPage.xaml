@@ -109,8 +109,11 @@
 
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                     <VerticalStackLayout Spacing="2">
-                                        <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" />
-                                        <Label Style="{StaticResource MzMuted}" Text="{Binding TimeText, StringFormat='Recebido às {0}'}" />
+                                        <Label
+                                            FontSize="22"
+                                            Style="{StaticResource MzTitle}"
+                                            Text="{Binding Title}" />
+                                        <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
                                     </VerticalStackLayout>
 
                                     <!-- Selo de status -->
@@ -151,14 +154,23 @@
                                     Color="{AppThemeBinding Light={StaticResource MzBorderLight}, Dark={StaticResource MzBorderDark}}" />
 
                                 <!-- Itens do pedido -->
-                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="6">
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="10">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="vm:OrderLineViewModel">
-                                            <Label
-                                                FontSize="15"
-                                                MaxLines="3"
-                                                Style="{StaticResource MzName}"
-                                                Text="{Binding Text}" />
+                                            <VerticalStackLayout Spacing="2">
+                                                <Label
+                                                    FontSize="15"
+                                                    MaxLines="3"
+                                                    Style="{StaticResource MzName}"
+                                                    Text="{Binding Text}" />
+                                                <!-- Escolhas do cliente: destacadas para a cozinha não deixar passar -->
+                                                <Label
+                                                    FontSize="14"
+                                                    IsVisible="{Binding HasDetails}"
+                                                    LineBreakMode="WordWrap"
+                                                    Text="{Binding Details}"
+                                                    TextColor="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+                                            </VerticalStackLayout>
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
                                 </VerticalStackLayout>

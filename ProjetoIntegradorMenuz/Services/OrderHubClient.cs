@@ -29,8 +29,16 @@ namespace ProjetoIntegradorMenuz.Services
             _connection.On<OrderDto>(NewOrderEvent, dto => NewOrder?.Invoke(dto));
             _connection.On<OrderDto>(OrderUpdatedEvent, dto => OrderUpdated?.Invoke(dto));
 
-            _connection.Reconnecting += _ => SetState(HubState.Reconnecting);
-            _connection.Closed += _ => SetState(HubState.Disconnected);
+            _connection.Reconnecting += _ =>
+            {
+                SetState(HubState.Reconnecting);
+                return Task.CompletedTask;
+            };
+            _connection.Closed += _ =>
+            {
+                SetState(HubState.Disconnected);
+                return Task.CompletedTask;
+            };
             _connection.Reconnected += async _ =>
             {
                 // Uma reconexão gera outro ConnectionId: é preciso entrar no grupo de novo.
@@ -109,11 +117,10 @@ namespace ProjetoIntegradorMenuz.Services
 
         public ValueTask DisposeAsync() => _connection.DisposeAsync();
 
-        private Task SetState(HubState state)
+        private void SetState(HubState state)
         {
             State = state;
             StateChanged?.Invoke(state);
-            return Task.CompletedTask;
         }
 
         /// <summary>Tenta reconectar para sempre: 0 s, 2 s, 5 s e depois a cada 10 s.</summary>

@@ -18,32 +18,41 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
     [HttpPost]
     public async Task<ActionResult<OrderDto>> Create(CreateOrderRequest request, CancellationToken ct)
     {
+        if (request.TableNumber is < 1 or > OrderRules.MaxTableNumber)
+            return BadRequest($"Número da mesa inválido (1 a {OrderRules.MaxTableNumber}).");
+
         if (request.Items is null || request.Items.Count == 0)
             return BadRequest("O pedido precisa ter ao menos um item.");
 
-        if (request.Items.Any(i => i.Quantity <= 0))
+        if (request.Items.Any(i => i.Quantity is <= 0 or > OrderRules.MaxQuantityPerItem))
             return BadRequest("Quantidade inválida.");
 
         var ids = request.Items.Select(i => i.ProductId).Distinct().ToList();
         var products = await db.Products.AsNoTracking()
+            .Include(p => p.Sizes)
+            .Include(p => p.Addons)
+            .Include(p => p.Ingredients)
+            .AsSplitQuery()
             .Where(p => ids.Contains(p.Id) && p.IsAvailable)
             .ToDictionaryAsync(p => p.Id, ct);
 
         if (products.Count != ids.Count)
             return BadRequest("Há produtos inexistentes ou indisponíveis no pedido.");
 
+        // Cada linha é mantida separada: o mesmo produto com escolhas diferentes não pode ser somado.
+        var items = new List<OrderItem>();
+        foreach (var line in request.Items)
+        {
+            var (item, error) = BuildItem(products[line.ProductId], line);
+            if (error is not null) return BadRequest(error);
+            items.Add(item!);
+        }
+
         var order = new Order
         {
+            TableNumber = request.TableNumber,
             ClientSentAt = request.ClientSentAt?.ToUniversalTime(),
-            Items = request.Items
-                .GroupBy(i => i.ProductId)
-                .Select(g => new OrderItem
-                {
-                    ProductId = g.Key,
-                    ProductName = products[g.Key].Name,
-                    UnitPrice = products[g.Key].BasePrice,
-                    Quantity = g.Sum(x => x.Quantity)
-                }).ToList()
+            Items = items
         };
         order.Total = order.Items.Sum(i => i.UnitPrice * i.Quantity);
 
@@ -139,6 +148,53 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
         }
 
         return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", "menuz-latencia.csv");
+    }
+
+    /// <summary>
+    /// Valida as escolhas do cliente contra o cadastro do produto e calcula o preço unitário no servidor.
+    /// </summary>
+    private static (OrderItem? Item, string? Error) BuildItem(Product product, CreateOrderItemRequest line)
+    {
+        ProductSize? size = null;
+        if (product.Sizes.Count > 0)
+        {
+            if (line.SizeId is null)
+                return (null, $"Escolha o tamanho de \"{product.Name}\".");
+
+            size = product.Sizes.FirstOrDefault(s => s.Id == line.SizeId);
+            if (size is null)
+                return (null, $"Tamanho inválido para \"{product.Name}\".");
+        }
+        else if (line.SizeId is not null)
+        {
+            return (null, $"\"{product.Name}\" não possui tamanhos.");
+        }
+
+        var addonIds = (line.AddonIds ?? new()).Distinct().ToList();
+        var addons = product.Addons.Where(a => addonIds.Contains(a.Id)).OrderBy(a => a.Name).ToList();
+        if (addons.Count != addonIds.Count)
+            return (null, $"Adicional inválido para \"{product.Name}\".");
+
+        var removedIds = (line.RemovedIngredientIds ?? new()).Distinct().ToList();
+        var removed = product.Ingredients.Where(i => removedIds.Contains(i.Id) && i.IsRemovable).OrderBy(i => i.Name).ToList();
+        if (removed.Count != removedIds.Count)
+            return (null, $"Ingrediente inválido ou não removível em \"{product.Name}\".");
+
+        var notes = string.IsNullOrWhiteSpace(line.Notes) ? null : line.Notes.Trim();
+        if (notes?.Length > OrderRules.NotesMaxLength)
+            return (null, $"A observação pode ter no máximo {OrderRules.NotesMaxLength} caracteres.");
+
+        return (new OrderItem
+        {
+            ProductId = product.Id,
+            ProductName = product.Name,
+            SizeName = size?.Name,
+            Addons = addons.Select(a => a.Name).ToList(),
+            RemovedIngredients = removed.Select(i => i.Name).ToList(),
+            Notes = notes,
+            UnitPrice = product.BasePrice + (size?.PriceDelta ?? 0) + addons.Sum(a => a.Price),
+            Quantity = line.Quantity
+        }, null);
     }
 
     private IQueryable<LatencyRow> LatencyQuery(DateTime? from, DateTime? to)

@@ -3,7 +3,15 @@ using ProjetoIntegradorMenuz.Models;
 
 namespace ProjetoIntegradorMenuz.ViewModels
 {
-    public record OrderLineViewModel(string Text);
+    /// <summary>Linha do card: "2x X-Burger (Duplo)" e, abaixo, as escolhas ("+ Bacon · sem Cebola · Obs: ...").</summary>
+    public record OrderLineViewModel(string Text, string Details)
+    {
+        public bool HasDetails => Details.Length > 0;
+
+        public static OrderLineViewModel From(OrderItemDto i) => new(
+            i.SizeName is null ? $"{i.Quantity}x {i.ProductName}" : $"{i.Quantity}x {i.ProductName} ({i.SizeName})",
+            CartItem.FormatOptions(i.Addons, i.RemovedIngredients, i.Notes));
+    }
 
     /// <summary>Card de um pedido no painel da cozinha.</summary>
     public partial class OrderCardViewModel : ObservableObject
@@ -11,19 +19,23 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public OrderCardViewModel(OrderDto dto)
         {
             Id = dto.Id;
+            TableNumber = dto.TableNumber;
             CreatedAt = dto.CreatedAt;
             Total = dto.Total;
-            Lines = dto.Items.Select(i => new OrderLineViewModel($"{i.Quantity}x {i.ProductName}")).ToList();
+            Lines = dto.Items.Select(OrderLineViewModel.From).ToList();
             Status = dto.Status;
         }
 
         public int Id { get; }
+        public int TableNumber { get; }
         public DateTime CreatedAt { get; }
         public decimal Total { get; }
         public IReadOnlyList<OrderLineViewModel> Lines { get; }
 
-        public string Title => $"Pedido #{Id}";
+        // A mesa é o que a cozinha mais precisa ver; pedidos antigos (antes da mesa existir) vêm com 0.
+        public string Title => TableNumber > 0 ? $"Mesa {TableNumber}" : "Mesa não informada";
         public string TimeText => CreatedAt.ToLocalTime().ToString("HH:mm");
+        public string Subtitle => $"Pedido #{Id} · recebido às {TimeText}";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(StatusText))]

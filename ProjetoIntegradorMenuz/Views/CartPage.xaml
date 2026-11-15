@@ -66,7 +66,13 @@
                             RowDefinitions="Auto,Auto"
                             RowSpacing="12">
                             <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="2">
-                                <Label Style="{StaticResource MzName}" Text="{Binding Product.Name}" />
+                                <Label Style="{StaticResource MzName}" Text="{Binding DisplayName}" />
+                                <Label
+                                    FontSize="13"
+                                    IsVisible="{Binding HasOptions}"
+                                    LineBreakMode="WordWrap"
+                                    Style="{StaticResource MzMuted}"
+                                    Text="{Binding OptionsText}" />
                                 <Label Style="{StaticResource MzMuted}" Text="{Binding UnitPrice, StringFormat='{0:C2} cada'}" />
                             </VerticalStackLayout>
 
@@ -140,7 +146,7 @@
                 <Label
                     HorizontalTextAlignment="Center"
                     Style="{StaticResource MzMuted}"
-                    Text="O envio para a cozinha será habilitado na próxima etapa (SignalR)." />
+                    Text="{Binding Table.CartHint}" />
                 <Button 
                     Command="{Binding ClearCommand}"
                     Style="{StaticResource MzGhostButton}"

@@ -20,7 +20,11 @@ namespace ProjetoIntegradorMenuz.Views
                 return;
             }
 
-            // Envia para a API (grava na tabela de pedidos que a cozinha consulta)
+            // Sem mesa definida a cozinha não sabe para onde levar o pedido: pergunta antes de enviar.
+            if (!vm.Table.IsConfigured && !await vm.Table.PromptAsync(this))
+                return;
+
+            // Envia para a API (grava o pedido e notifica a cozinha em tempo real)
             var error = await vm.SubmitOrderAsync();
             if (error is not null)
             {

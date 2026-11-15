@@ -4,7 +4,7 @@ using ProjetoIntegradorMenuz.Models;
 
 namespace ProjetoIntegradorMenuz.Services
 {
-    /// <summary>Estado local do carrinho (em memória). O envio ao servidor será feito na próxima sprint.</summary>
+    /// <summary>Estado local do carrinho (em memória) até o envio do pedido.</summary>
     public partial class CartService : ObservableObject
     {
         public ObservableCollection<CartItem> Items { get; } = new();
@@ -15,13 +15,14 @@ namespace ProjetoIntegradorMenuz.Services
         [ObservableProperty]
         private decimal totalPrice;
 
-        public void Add(Product product)
+        /// <summary>Adiciona a linha; se já existir uma com as mesmas escolhas, soma a quantidade.</summary>
+        public void Add(CartItem item)
         {
-            var existing = Items.FirstOrDefault(i => i.Product.Id == product.Id);
+            var existing = Items.FirstOrDefault(i => i.HasSameChoicesAs(item));
             if (existing is null)
-                Items.Add(new CartItem(product));
+                Items.Add(item);
             else
-                existing.Quantity++;
+                existing.Quantity += item.Quantity;
 
             Recalculate();
         }

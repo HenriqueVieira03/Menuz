@@ -16,6 +16,13 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public string Description => Product.Description;
         public decimal Price => Product.BasePrice;
 
+        /// <summary>Há algo para o cliente escolher (vários tamanhos, adicionais ou ingredientes removíveis)?</summary>
+        public bool NeedsChoices =>
+            Product.Sizes.Count > 1 || Product.Addons.Count > 0 || Product.Ingredients.Any(i => i.IsRemovable);
+
+        /// <summary>Com vários tamanhos, o card mostra "a partir de".</summary>
+        public string PriceText => Product.Sizes.Count > 1 ? $"a partir de {Price:C2}" : $"{Price:C2}";
+
         [ObservableProperty]
         private ImageSource? picture;
 
