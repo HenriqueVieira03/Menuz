@@ -56,6 +56,35 @@ namespace ProjetoIntegradorMenuz.Services
 
         public Task DeleteProductAsync(int id) => SendAsync<object>(HttpMethod.Delete, $"api/admin/products/{id}", null);
 
+        // ---- Imagens ----
+
+        /// <summary>Envia a foto escolhida (JPG/PNG/WEBP até 5 MB). Retorna o caminho relativo a gravar no produto.</summary>
+        public async Task<string> UploadImageAsync(Stream content, string fileName)
+        {
+            using var form = new MultipartFormDataContent();
+            var file = new StreamContent(content);
+            file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(GuessContentType(fileName));
+            form.Add(file, "file", fileName);
+
+            var response = await _http.PostAsync("api/admin/images", form);
+            await ThrowIfErrorAsync(response);
+
+            var result = await response.Content.ReadFromJsonAsync<ImageUploadResult>();
+            return result!.Path;
+        }
+
+        private static string GuessContentType(string fileName) => Path.GetExtension(fileName).ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => "image/jpeg"
+        };
+
+        private sealed class ImageUploadResult
+        {
+            public string Path { get; set; } = string.Empty;
+        }
+
         // ---- Infra ----
 
         private static string Iso(DateTime utc) => Uri.EscapeDataString(utc.ToUniversalTime().ToString("O"));

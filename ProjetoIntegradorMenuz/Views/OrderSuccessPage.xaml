@@ -1,44 +1,82 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ProjetoIntegradorMenuz.Views.OrderSuccessPage"
-             Title="Pedido Confirmado"
-             Shell.NavBarIsVisible="False"
-             BackgroundColor="{AppThemeBinding Light={StaticResource MzBackgroundLight}, Dark={StaticResource MzBackgroundDark}}">
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.OrderSuccessPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Pedido confirmado"
+    Shell.NavBarIsVisible="False">
 
-    <Grid Padding="20" HorizontalOptions="Center" VerticalOptions="Center">
-        <Border Padding="40,50" Style="{StaticResource MzCard}" MaximumWidthRequest="500">
-            <VerticalStackLayout Spacing="20" HorizontalOptions="Center">
+    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
 
-                <Label Text="✅" FontSize="80" HorizontalOptions="Center" />
+    <Grid Padding="20">
+        <Border
+            Padding="40,44"
+            HorizontalOptions="Center"
+            MaximumWidthRequest="480"
+            Style="{StaticResource MzCardRaised}"
+            VerticalOptions="Center">
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="18">
 
-                <Label Text="Pedido realizado!" 
-                       Style="{StaticResource MzTitle}" 
-                       FontSize="28" 
-                       HorizontalOptions="Center" 
-                       HorizontalTextAlignment="Center" />
-
-                <Label Text="Seu pedido já foi enviado para a cozinha e logo chegará na sua mesa." 
-                       Style="{StaticResource MzMuted}" 
-                       FontSize="16" 
-                       HorizontalOptions="Center" 
-                       HorizontalTextAlignment="Center" />
-
-                <Border BackgroundColor="#E6F4EA" Padding="15" StrokeShape="RoundRectangle 8" Stroke="Transparent" Margin="0,10">
-                    <Label Text="⏱️ Tempo estimado: 20 a 30 minutos" 
-                           TextColor="#137333" 
-                           FontFamily="OpenSansSemibold" 
-                           FontSize="16" 
-                           HorizontalOptions="Center" />
+                <Border
+                    BackgroundColor="{StaticResource MzSuccessTint}"
+                    HeightRequest="96"
+                    HorizontalOptions="Center"
+                    StrokeThickness="0"
+                    WidthRequest="96">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="48" />
+                    </Border.StrokeShape>
+                    <Label
+                        FontFamily="OpenSansSemibold"
+                        FontSize="44"
+                        HorizontalOptions="Center"
+                        Text="✓"
+                        TextColor="{StaticResource MzSuccessText}"
+                        VerticalOptions="Center" />
                 </Border>
 
-                <Button Text="Voltar ao Cardápio" 
-                        x:Name="VoltarMenu"
-                        Clicked="VoltarMenu_Clicked" 
-                        Style="{StaticResource MzPrimaryButton}" 
-                        HeightRequest="50" 
-                        Margin="0,20,0,0" />
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        HorizontalOptions="Center"
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource MzDisplay}"
+                        Text="Pedido enviado!" />
+                    <Label
+                        HorizontalOptions="Center"
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource MzBody}"
+                        Text="A cozinha já recebeu seu pedido e logo ele chega à sua mesa."
+                        TextColor="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
+                </VerticalStackLayout>
 
+                <Border
+                    Margin="0,6"
+                    Padding="16,12"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
+                    StrokeThickness="0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                        <Label FontSize="18" Text="⏱️" VerticalOptions="Center" />
+                        <Label
+                            FontFamily="OpenSansSemibold"
+                            FontSize="15"
+                            Text="Tempo estimado: 20 a 30 minutos"
+                            TextColor="{StaticResource MzPrimaryDeep}"
+                            VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <Button
+                    x:Name="VoltarMenu"
+                    Clicked="VoltarMenu_Clicked"
+                    HeightRequest="52"
+                    Style="{StaticResource MzPrimaryButton}"
+                    Text="Voltar ao cardápio" />
             </VerticalStackLayout>
         </Border>
     </Grid>

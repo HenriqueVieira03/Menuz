@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using ProjetoIntegradorMenuz.Models;
+using ProjetoIntegradorMenuz.Services;
 
 namespace ProjetoIntegradorMenuz.ViewModels
 {
@@ -20,8 +21,9 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public bool NeedsChoices =>
             Product.Sizes.Count > 1 || Product.Addons.Count > 0 || Product.Ingredients.Any(i => i.IsRemovable);
 
-        /// <summary>Com vários tamanhos, o card mostra "a partir de".</summary>
-        public string PriceText => Product.Sizes.Count > 1 ? $"a partir de {Price:C2}" : $"{Price:C2}";
+        /// <summary>Com vários tamanhos, o card mostra "a partir de" acima do preço.</summary>
+        public bool HasPriceFrom => Product.Sizes.Count > 1;
+        public string PriceText => $"{Price:C2}";
 
         [ObservableProperty]
         private ImageSource? picture;
@@ -34,13 +36,13 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         public void LoadImage()
         {
-            if (_imageRequested || string.IsNullOrWhiteSpace(Product.ImageUrl))
+            if (_imageRequested || ApiConfig.ResolveImage(Product.ImageUrl) is not { } uri)
                 return;
 
             _imageRequested = true;
             Picture = new UriImageSource
             {
-                Uri = new Uri(Product.ImageUrl),
+                Uri = uri,
                 CachingEnabled = true,
                 CacheValidity = TimeSpan.FromDays(1)
             };

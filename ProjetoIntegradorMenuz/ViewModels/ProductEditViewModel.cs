@@ -54,8 +54,95 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [ObservableProperty] private string name = string.Empty;
         [ObservableProperty] private string description = string.Empty;
         [ObservableProperty] private string priceText = string.Empty;
-        [ObservableProperty] private string imageUrl = string.Empty;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ImagePreview))]
+        [NotifyPropertyChangedFor(nameof(HasImage))]
+        [NotifyPropertyChangedFor(nameof(HasNoImage))]
+        [NotifyPropertyChangedFor(nameof(ImageLink))]
+        [NotifyPropertyChangedFor(nameof(ImageOriginText))]
+        private string imageUrl = string.Empty;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(PickImageCommand))]
+        private bool isUploading;
+
         [ObservableProperty] private bool isAvailable = true;
+
+        // ---- Foto ----
+
+        private static bool IsUploadedPath(string? url) => url?.StartsWith("uploads/", StringComparison.Ordinal) == true;
+
+        public ImageSource? ImagePreview => ApiConfig.ResolveImage(ImageUrl) is { } uri ? ImageSource.FromUri(uri) : null;
+        public bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl);
+        public bool HasNoImage => !HasImage;
+        public string ImageOriginText => IsUploadedPath(ImageUrl) ? "Arquivo enviado do dispositivo" : "Link externo";
+
+        /// <summary>Campo "ou cole um link": fica vazio quando a foto foi enviada como arquivo.</summary>
+        public string ImageLink
+        {
+            get => IsUploadedPath(ImageUrl) ? string.Empty : ImageUrl;
+            set
+            {
+                if (value == ImageLink) return;
+                ImageUrl = value?.Trim() ?? string.Empty;
+            }
+        }
+
+        private bool CanPickImage() => !IsUploading;
+
+        /// <summary>Escolhe uma foto do computador/tablet e envia para o servidor.</summary>
+        [RelayCommand(CanExecute = nameof(CanPickImage))]
+        private async Task PickImageAsync()
+        {
+            ErrorMessage = null;
+            FileResult? file;
+            try
+            {
+                file = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Foto do produto",
+                    FileTypes = FilePickerFileType.Images
+                });
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Não foi possível abrir os arquivos: {ex.Message}";
+                return;
+            }
+            if (file is null) return; // cancelou
+
+            IsUploading = true;
+            try
+            {
+                // Copia para a memória para conferir o tamanho antes de enviar.
+                await using var source = await file.OpenReadAsync();
+                using var buffer = new MemoryStream();
+                await source.CopyToAsync(buffer);
+                if (buffer.Length > 5 * 1024 * 1024)
+                {
+                    ErrorMessage = "A imagem pode ter no máximo 5 MB.";
+                    return;
+                }
+
+                buffer.Position = 0;
+                ImageUrl = await _admin.UploadImageAsync(buffer, file.FileName);
+            }
+            catch (Exception ex) when (ex is StaffAccessException or OrderRejectedException)
+            {
+                ErrorMessage = ex.Message;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                ErrorMessage = "Não foi possível enviar a imagem. Verifique a conexão com o servidor.";
+            }
+            finally
+            {
+                IsUploading = false;
+            }
+        }
+
+        [RelayCommand]
+        private void RemoveImage() => ImageUrl = string.Empty;
         [ObservableProperty] private CategoryAdmin? selectedCategory;
 
         public ObservableCollection<CategoryAdmin> Categories { get; } = new();

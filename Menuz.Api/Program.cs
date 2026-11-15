@@ -19,6 +19,7 @@ if (jwt.Key.Length < 32)
 
 builder.Services.AddSingleton(jwt);
 builder.Services.AddSingleton<TokenService>();
+builder.Services.AddSingleton<ImageStorage>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -82,6 +83,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Fotos dos produtos enviadas pela gerência (wwwroot/uploads), acessíveis pelo tablet sem login.
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

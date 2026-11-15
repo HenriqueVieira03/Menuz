@@ -10,7 +10,10 @@ namespace ProjetoIntegradorMenuz.Services
         public ObservableCollection<CartItem> Items { get; } = new();
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasItems))]
         private int totalCount;
+
+        public bool HasItems => TotalCount > 0;
 
         [ObservableProperty]
         private decimal totalPrice;

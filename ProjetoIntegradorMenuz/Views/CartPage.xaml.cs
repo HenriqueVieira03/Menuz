@@ -8,6 +8,24 @@ namespace ProjetoIntegradorMenuz.Views
         {
             BindingContext = vm;
             InitializeComponent();
+            SizeChanged += OnPageSizeChanged;
+        }
+
+        // Tablet/desktop: resumo ao lado da lista. Celular: resumo embaixo.
+        private void OnPageSizeChanged(object? sender, EventArgs e)
+        {
+            if (Width <= 0) return;
+            var wide = Width >= 820;
+
+            ContentGrid.ColumnDefinitions = wide
+                ? new ColumnDefinitionCollection(new ColumnDefinition(GridLength.Star), new ColumnDefinition(new GridLength(360)))
+                : new ColumnDefinitionCollection(new ColumnDefinition(GridLength.Star));
+            ContentGrid.RowDefinitions = wide
+                ? new RowDefinitionCollection(new RowDefinition(GridLength.Star))
+                : new RowDefinitionCollection(new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto));
+
+            Grid.SetColumn(SummaryCard, wide ? 1 : 0);
+            Grid.SetRow(SummaryCard, wide ? 0 : 1);
         }
 
         private async void FinalizarPedido_Clicked(object sender, EventArgs e)

@@ -18,6 +18,9 @@ namespace ProjetoIntegradorMenuz
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            // Campos de texto sem moldura nativa: a moldura é o Border com estilo MzInput.
+            Controls.InputStyling.Apply();
+
             // Serviços
             builder.Services.AddSingleton(new HttpClient
             {

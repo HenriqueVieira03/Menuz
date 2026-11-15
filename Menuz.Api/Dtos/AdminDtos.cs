@@ -55,3 +55,5 @@ public record DashboardDto(
     double? AverageMinutesToDeliver,
     List<TopProductDto> TopProducts,
     LatencyStatsDto KitchenLatency);
+
+public record ImageUploadDto(string Path);

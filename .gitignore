@@ -440,3 +440,7 @@ FodyWeavers.xsd
 
 # Vim temporary swap files
 *.swp
+
+# Fotos enviadas pela gerência (geradas em tempo de execução)
+Menuz.Api/wwwroot/uploads/*
+!Menuz.Api/wwwroot/uploads/.gitkeep

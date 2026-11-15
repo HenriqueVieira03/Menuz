@@ -39,6 +39,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(StatusText))]
+        [NotifyPropertyChangedFor(nameof(IsPending))]
         [NotifyPropertyChangedFor(nameof(IsPreparing))]
         [NotifyPropertyChangedFor(nameof(IsReady))]
         [NotifyPropertyChangedFor(nameof(ActionText))]
@@ -48,6 +49,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(IsCancelled))]
         private OrderStatus status;
 
+        public bool IsPending => Status == OrderStatus.Pending;
         public bool IsPreparing => Status == OrderStatus.Preparing;
         public bool IsReady => Status == OrderStatus.Ready;
         public bool IsCancelled => Status == OrderStatus.Cancelled;

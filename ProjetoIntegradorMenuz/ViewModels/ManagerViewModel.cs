@@ -408,7 +408,12 @@ namespace ProjetoIntegradorMenuz.ViewModels
             }
         }
 
-        private static string Minutes(double? value) => value is { } v ? $"{v:0.#} min" : "—";
+        private static string Minutes(double? value) => value switch
+        {
+            null => "—",
+            < 1 => "< 1 min",
+            { } v => $"{v:0.#} min"
+        };
 
         private static string Ms(LatencyStats? l, Func<LatencyStats, double> pick) =>
             l is { Samples: > 0 } ? $"{pick(l):0} ms" : "—";

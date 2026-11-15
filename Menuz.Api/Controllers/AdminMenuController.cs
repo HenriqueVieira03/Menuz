@@ -1,6 +1,7 @@
 using Menuz.Api.Data;
 using Menuz.Api.Dtos;
 using Menuz.Api.Models;
+using Menuz.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ namespace Menuz.Api.Controllers;
 [ApiController]
 [Route("api/admin")]
 [Authorize(Roles = Roles.Manager)]
-public class AdminMenuController(MenuzDbContext db) : ControllerBase
+public class AdminMenuController(MenuzDbContext db, ImageStorage images) : ControllerBase
 {
     // ================= Categorias =================
 
@@ -120,9 +121,15 @@ public class AdminMenuController(MenuzDbContext db) : ControllerBase
         if (product is null) return NotFound();
 
         if (await ValidateProductAsync(request, ct) is { } error) return BadRequest(error);
+
+        var previousImage = product.ImageUrl;
         if (ApplyProduct(product, request) is { } optionError) return BadRequest(optionError);
 
         await db.SaveChangesAsync(ct);
+
+        // Foto trocada ou removida: apaga o arquivo antigo do servidor.
+        if (previousImage != product.ImageUrl) images.DeleteIfLocal(previousImage);
+
         return await LoadDtoAsync(id, ct);
     }
 
@@ -139,8 +146,26 @@ public class AdminMenuController(MenuzDbContext db) : ControllerBase
     [HttpDelete("products/{id:int}")]
     public async Task<IActionResult> DeleteProduct(int id, CancellationToken ct)
     {
+        var image = await db.Products.Where(p => p.Id == id).Select(p => p.ImageUrl).FirstOrDefaultAsync(ct);
         var deleted = await db.Products.Where(p => p.Id == id).ExecuteDeleteAsync(ct);
-        return deleted == 0 ? NotFound() : NoContent();
+        if (deleted == 0) return NotFound();
+
+        images.DeleteIfLocal(image);
+        return NoContent();
+    }
+
+    // ================= Imagens =================
+
+    /// <summary>
+    /// Envia a foto de um produto (JPG, PNG ou WEBP, até 5 MB). Retorna o caminho relativo
+    /// para usar em ImageUrl ao salvar o produto.
+    /// </summary>
+    [HttpPost("images")]
+    [RequestSizeLimit(ImageStorage.MaxBytes + 64 * 1024)]
+    public async Task<ActionResult<ImageUploadDto>> UploadImage(IFormFile file, CancellationToken ct)
+    {
+        var (path, error) = await images.SaveAsync(file, ct);
+        return error is not null ? BadRequest(error) : new ImageUploadDto(path!);
     }
 
     private async Task<string?> ValidateProductAsync(SaveProductRequest r, CancellationToken ct)
@@ -152,10 +177,13 @@ public class AdminMenuController(MenuzDbContext db) : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(r.ImageUrl))
         {
-            if (r.ImageUrl.Length > 500 ||
-                !Uri.TryCreate(r.ImageUrl.Trim(), UriKind.Absolute, out var uri) ||
-                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-                return "A URL da imagem deve começar com http:// ou https://.";
+            var url = r.ImageUrl.Trim();
+            var isWebLink = Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
+            // Aceita link externo (http/https) ou foto enviada para este servidor ("uploads/...").
+            if (url.Length > 500 || (!isWebLink && !ImageStorage.IsLocal(url)))
+                return "A imagem deve ser um link http:// ou https:// ou um arquivo enviado pelo app.";
         }
 
         if (!await db.Categories.AnyAsync(c => c.Id == r.CategoryId, ct))
