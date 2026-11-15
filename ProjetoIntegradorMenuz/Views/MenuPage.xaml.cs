@@ -7,12 +7,14 @@ namespace ProjetoIntegradorMenuz.Views
     public partial class MenuPage : ContentPage
     {
         private readonly MenuViewModel _vm;
+        private readonly AuthService _auth;
         private bool _barVisible;
 
-        public MenuPage(MenuViewModel vm)
+        public MenuPage(MenuViewModel vm, AuthService auth)
         {
             InitializeComponent();
             BindingContext = _vm = vm;
+            _auth = auth;
 
             SizeChanged += OnPageSizeChanged;
             _vm.PropertyChanged += OnViewModelPropertyChanged;
@@ -22,6 +24,16 @@ namespace ProjetoIntegradorMenuz.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+
+            // Voltar ao cardápio do cliente encerra a sessão da equipe.
+            // O cardápio é recarregado porque a gerência pode ter mudado produtos ou disponibilidade.
+            if (_auth.Session is not null)
+            {
+                _auth.Logout();
+                await _vm.ReloadAsync();
+                return;
+            }
+
             if (_vm.Chips.Count == 0)
                 await _vm.LoadCommand.ExecuteAsync(null);
         }

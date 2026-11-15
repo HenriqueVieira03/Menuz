@@ -12,8 +12,19 @@ public class MenuzDbContext(DbContextOptions<MenuzDbContext> options) : DbContex
     public DbSet<ProductIngredient> ProductIngredients => Set<ProductIngredient>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<User> Users => Set<User>();
+
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        mb.Entity<User>(e =>
+        {
+            e.Property(x => x.Username).HasMaxLength(40).IsRequired();
+            e.HasIndex(x => x.Username).IsUnique();
+            e.Property(x => x.DisplayName).HasMaxLength(80).IsRequired();
+            e.Property(x => x.PasswordHash).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Role).HasConversion<string>().HasMaxLength(20); // grava "Kitchen"/"Manager", legível no banco
+        });
+
         mb.Entity<Category>(e =>
         {
             e.Property(x => x.Name).HasMaxLength(80).IsRequired();

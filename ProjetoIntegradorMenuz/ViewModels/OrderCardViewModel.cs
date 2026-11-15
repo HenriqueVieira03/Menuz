@@ -43,10 +43,18 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(IsReady))]
         [NotifyPropertyChangedFor(nameof(ActionText))]
         [NotifyPropertyChangedFor(nameof(NextStatus))]
+        [NotifyPropertyChangedFor(nameof(IsFinished))]
+        [NotifyPropertyChangedFor(nameof(IsOpen))]
+        [NotifyPropertyChangedFor(nameof(IsCancelled))]
         private OrderStatus status;
 
         public bool IsPreparing => Status == OrderStatus.Preparing;
         public bool IsReady => Status == OrderStatus.Ready;
+        public bool IsCancelled => Status == OrderStatus.Cancelled;
+
+        /// <summary>Entregue ou cancelado: não há mais ação possível.</summary>
+        public bool IsFinished => Status is OrderStatus.Delivered or OrderStatus.Cancelled;
+        public bool IsOpen => !IsFinished;
 
         public string StatusText => Status switch
         {

@@ -1,14 +1,17 @@
 using Menuz.Api.Data;
+using Menuz.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Menuz.Api.Hubs;
 
 /// <summary>
-/// Hub de tempo real entre salão e cozinha.
-/// Servidor → cozinha: "NewOrder" (pedido criado) e "OrderUpdated" (status alterado), enviados pelo OrdersController.
-/// Cozinha → servidor: JoinKitchen/LeaveKitchen e AcknowledgeOrder (confirma que o pedido apareceu na tela).
+/// Hub de tempo real entre salão e equipe (cozinha e gerência). Exige login: os pedidos não ficam expostos ao público.
+/// Servidor → equipe: "NewOrder" (pedido criado) e "OrderUpdated" (status alterado), enviados pelo OrdersController.
+/// Equipe → servidor: JoinKitchen/LeaveKitchen e AcknowledgeOrder (confirma que o pedido apareceu na tela).
 /// </summary>
+[Authorize(Roles = Roles.Staff)]
 public class OrderHub(MenuzDbContext db, ILogger<OrderHub> logger) : Hub
 {
     public const string KitchenGroup = "kitchen";

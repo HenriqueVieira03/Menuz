@@ -4,18 +4,25 @@ using Menuz.Api.Data;
 using Menuz.Api.Dtos;
 using Menuz.Api.Hubs;
 using Menuz.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Menuz.Api.Controllers;
 
+/// <summary>
+/// Pedidos. Criar é público (tablet da mesa, sem login); consultar e mudar status exige a equipe;
+/// cancelar e ver métricas exige a gerência.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = Roles.Staff)]
 public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : ControllerBase
 {
     /// <summary>Cria um pedido (tablet do cliente). Os preços vêm do banco, nunca do cliente.</summary>
     [HttpPost]
+    [AllowAnonymous]
     public async Task<ActionResult<OrderDto>> Create(CreateOrderRequest request, CancellationToken ct)
     {
         if (request.TableNumber is < 1 or > OrderRules.MaxTableNumber)
@@ -68,14 +75,22 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, dto);
     }
 
-    /// <summary>Pedidos em andamento (painel da cozinha). Use ?includeFinished=true para todos.</summary>
+    /// <summary>
+    /// Pedidos em andamento (painel da cozinha). Use ?includeFinished=true para todos (painel da gerência)
+    /// e ?from=/&amp;to= (UTC) para limitar o período.
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<List<OrderDto>>> GetAll([FromQuery] bool includeFinished, CancellationToken ct)
+    public async Task<ActionResult<List<OrderDto>>> GetAll(
+        [FromQuery] bool includeFinished, [FromQuery] DateTime? from, [FromQuery] DateTime? to, CancellationToken ct)
     {
         var query = db.Orders.AsNoTracking().Include(o => o.Items).AsQueryable();
 
         if (!includeFinished)
             query = query.Where(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Cancelled);
+        if (from is { } f)
+            query = query.Where(o => o.CreatedAt >= f.ToUniversalTime());
+        if (to is { } t)
+            query = query.Where(o => o.CreatedAt < t.ToUniversalTime());
 
         var orders = await query.OrderBy(o => o.CreatedAt).ToListAsync(ct);
         return orders.Select(o => o.ToDto()).ToList();
@@ -95,15 +110,22 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
         if (!Enum.IsDefined(request.Status))
             return BadRequest("Status inválido.");
 
+        // Cancelar é decisão da gerência; a cozinha só faz o pedido andar.
+        if (request.Status == OrderStatus.Cancelled && !User.IsInRole(Roles.Manager))
+            return Forbid();
+
         var order = await db.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null) return NotFound();
 
-        order.Status = request.Status;
+        if (order.Status is OrderStatus.Delivered or OrderStatus.Cancelled && order.Status != request.Status)
+            return BadRequest("Pedido já finalizado; o status não pode mais ser alterado.");
+
+        order.SetStatus(request.Status, DateTime.UtcNow);
         await db.SaveChangesAsync(ct);
 
         var dto = order.ToDto();
 
-        // Mantém todas as telas da cozinha (e futuramente o PDV) com o mesmo status.
+        // Mantém todas as telas da equipe (cozinha e gerência) com o mesmo status.
         await hub.Clients.Group(OrderHub.KitchenGroup).SendAsync(OrderHub.OrderUpdatedEvent, dto, CancellationToken.None);
 
         return dto;
@@ -114,6 +136,7 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
     /// Filtros opcionais: ?from=2026-11-15T00:00:00Z&amp;to=...
     /// </summary>
     [HttpGet("metrics")]
+    [Authorize(Roles = Roles.Manager)]
     public async Task<ActionResult<OrderMetricsDto>> GetMetrics([FromQuery] DateTime? from, [FromQuery] DateTime? to, CancellationToken ct)
     {
         var rows = await LatencyQuery(from, to).ToListAsync(ct);
@@ -128,6 +151,7 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
 
     /// <summary>Exporta as medições em CSV (abre no Excel/Sheets para montar tabelas e gráficos do artigo).</summary>
     [HttpGet("latency.csv")]
+    [Authorize(Roles = Roles.Manager)]
     public async Task<IActionResult> ExportLatencyCsv([FromQuery] DateTime? from, [FromQuery] DateTime? to, CancellationToken ct)
     {
         var rows = await LatencyQuery(from, to).ToListAsync(ct);
@@ -207,7 +231,8 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
             .Select(o => new LatencyRow(o.Id, o.ClientSentAt, o.CreatedAt, o.KitchenReceivedAt));
     }
 
-    private static LatencyStatsDto Stats(IEnumerable<double> values)
+    /// <summary>Média, mediana, P95, máximo e % abaixo de 2 s (também usado pelo painel da gerência).</summary>
+    internal static LatencyStatsDto Stats(IEnumerable<double> values)
     {
         var v = values.OrderBy(x => x).ToArray();
         if (v.Length == 0) return new LatencyStatsDto(0, 0, 0, 0, 0, 0);

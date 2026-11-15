@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.ProductEditPage"
+    x:Name="PageRoot"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ProjetoIntegradorMenuz.Models"
+    xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
+    x:DataType="vm:ProductEditViewModel"
+    Title="{Binding PageTitle}"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Cabeçalho -->
+        <Grid
+            Grid.Row="0"
+            Padding="24,14"
+            BackgroundColor="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}"
+            ColumnDefinitions="Auto,*"
+            ColumnSpacing="12">
+            <Button
+                Command="{Binding CancelCommand}"
+                Style="{StaticResource MzQtyButton}"
+                Text="←"
+                VerticalOptions="Center" />
+            <Label
+                Grid.Column="1"
+                FontFamily="OpenSansSemibold"
+                FontSize="22"
+                Text="{Binding PageTitle}"
+                TextColor="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}"
+                VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout
+                Padding="20,16,20,24"
+                MaximumWidthRequest="760"
+                Spacing="18">
+
+                <!-- Dados básicos -->
+                <Border Padding="18" Style="{StaticResource MzCard}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Style="{StaticResource MzName}" Text="Dados do produto" />
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Style="{StaticResource MzMuted}" Text="Nome *" />
+                            <Entry MaxLength="120" Placeholder="Ex.: X-Burger" Text="{Binding Name}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Style="{StaticResource MzMuted}" Text="Descrição" />
+                            <Editor
+                                AutoSize="TextChanges"
+                                MaxLength="500"
+                                MinimumHeightRequest="60"
+                                Placeholder="Ingredientes, tamanho da porção..."
+                                Text="{Binding Description}" />
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Style="{StaticResource MzMuted}" Text="Preço base (R$) *" />
+                                <Entry Keyboard="Numeric" Placeholder="24,90" Text="{Binding PriceText}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Style="{StaticResource MzMuted}" Text="Categoria *" />
+                                <Picker
+                                    ItemDisplayBinding="{Binding Name, x:DataType=models:CategoryAdmin}"
+                                    ItemsSource="{Binding Categories}"
+                                    SelectedItem="{Binding SelectedCategory}"
+                                    Title="Escolha" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Style="{StaticResource MzMuted}" Text="URL da imagem" />
+                            <Entry
+                                Keyboard="Url"
+                                MaxLength="500"
+                                Placeholder="https://..."
+                                Text="{Binding ImageUrl}" />
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout VerticalOptions="Center">
+                                <Label Text="Disponível no cardápio" />
+                                <Label FontSize="13" Style="{StaticResource MzMuted}" Text="Desligue quando o item acabar." />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding IsAvailable}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Tamanhos -->
+                <Border Padding="18" Style="{StaticResource MzCard}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout>
+                                <Label Style="{StaticResource MzName}" Text="Tamanhos" />
+                                <Label FontSize="13" Style="{StaticResource MzMuted}" Text="Opcional. O cliente escolhe um; o valor é somado ao preço base." />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Command="{Binding AddSizeCommand}" Style="{StaticResource MzGhostButton}" Text="+ Tamanho" VerticalOptions="Center" />
+                        </Grid>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Sizes}" Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:EditableOptionViewModel">
+                                    <Grid ColumnDefinitions="*,150,Auto" ColumnSpacing="8">
+                                        <Entry MaxLength="60" Placeholder="Nome (ex.: Grande)" Text="{Binding Name}" />
+                                        <Entry Grid.Column="1" Keyboard="Numeric" Placeholder="{Binding PricePlaceholder}" Text="{Binding PriceText}" />
+                                        <Button
+                                            Grid.Column="2"
+                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.RemoveOptionCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource MzQtyButton}"
+                                            Text="✕" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Adicionais -->
+                <Border Padding="18" Style="{StaticResource MzCard}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout>
+                                <Label Style="{StaticResource MzName}" Text="Adicionais" />
+                                <Label FontSize="13" Style="{StaticResource MzMuted}" Text="Extras que o cliente pode marcar (ex.: bacon)." />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Command="{Binding AddAddonCommand}" Style="{StaticResource MzGhostButton}" Text="+ Adicional" VerticalOptions="Center" />
+                        </Grid>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Addons}" Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:EditableOptionViewModel">
+                                    <Grid ColumnDefinitions="*,150,Auto" ColumnSpacing="8">
+                                        <Entry MaxLength="60" Placeholder="Nome (ex.: Bacon)" Text="{Binding Name}" />
+                                        <Entry Grid.Column="1" Keyboard="Numeric" Placeholder="{Binding PricePlaceholder}" Text="{Binding PriceText}" />
+                                        <Button
+                                            Grid.Column="2"
+                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.RemoveOptionCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource MzQtyButton}"
+                                            Text="✕" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Ingredientes -->
+                <Border Padding="18" Style="{StaticResource MzCard}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout>
+                                <Label Style="{StaticResource MzName}" Text="Ingredientes" />
+                                <Label FontSize="13" Style="{StaticResource MzMuted}" Text="Marque &quot;Removível&quot; para o cliente poder pedir sem." />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Command="{Binding AddIngredientCommand}" Style="{StaticResource MzGhostButton}" Text="+ Ingrediente" VerticalOptions="Center" />
+                        </Grid>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ingredients}" Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:EditableOptionViewModel">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                                        <Entry MaxLength="60" Placeholder="Nome (ex.: Cebola)" Text="{Binding Name}" />
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsRemovable}" VerticalOptions="Center" />
+                                        <Label Grid.Column="2" Text="Removível" VerticalOptions="Center" />
+                                        <Button
+                                            Grid.Column="3"
+                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.RemoveOptionCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource MzQtyButton}"
+                                            Text="✕" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Rodapé fixo -->
+        <Border
+            Grid.Row="2"
+            Padding="20,12"
+            BackgroundColor="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}"
+            Stroke="Transparent">
+            <VerticalStackLayout Spacing="8" MaximumWidthRequest="760">
+                <Label
+                    IsVisible="{Binding HasError}"
+                    Text="{Binding ErrorMessage}"
+                    TextColor="{AppThemeBinding Light={StaticResource MzDestructiveLight}, Dark={StaticResource MzDestructiveDark}}" />
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Button
+                        Command="{Binding DeleteCommand}"
+                        IsVisible="{Binding IsExisting}"
+                        Style="{StaticResource MzGhostButton}"
+                        Text="Excluir produto"
+                        TextColor="{AppThemeBinding Light={StaticResource MzDestructiveLight}, Dark={StaticResource MzDestructiveDark}}" />
+                    <ActivityIndicator
+                        Grid.Column="1"
+                        HorizontalOptions="End"
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        Color="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+                    <Button
+                        Grid.Column="2"
+                        Command="{Binding SaveCommand}"
+                        HeightRequest="48"
+                        Style="{StaticResource MzPrimaryButton}"
+                        Text="Salvar" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

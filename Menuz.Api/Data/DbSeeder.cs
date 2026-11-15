@@ -1,15 +1,47 @@
 using Menuz.Api.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Menuz.Api.Data;
 
-/// <summary>Popula o banco com um cardápio de demonstração (somente se estiver vazio).</summary>
+/// <summary>Popula o banco com usuários e cardápio de demonstração (cada parte só se estiver vazia).</summary>
 public static class DbSeeder
 {
     // Imagens de placeholder; troque por fotos reais (ex.: servidas em wwwroot/images).
     private static string Img(string seed) => $"https://picsum.photos/seed/{seed}/480/320";
 
+    /// <summary>
+    /// Contas de DEMONSTRAÇÃO (somente ambiente de desenvolvimento, criado pelo Program.cs).
+    /// Troque as senhas antes de qualquer uso fora do laboratório.
+    /// </summary>
+    public static readonly (string Username, string Password, string DisplayName, UserRole Role)[] DemoUsers =
+    {
+        ("gerente", "gerente123", "Gerência", UserRole.Manager),
+        ("cozinha", "cozinha123", "Cozinha", UserRole.Kitchen)
+    };
+
     public static async Task SeedAsync(MenuzDbContext db)
+    {
+        await SeedUsersAsync(db);
+        await SeedMenuAsync(db);
+    }
+
+    private static async Task SeedUsersAsync(MenuzDbContext db)
+    {
+        if (await db.Users.AnyAsync()) return;
+
+        var hasher = new PasswordHasher<User>();
+        foreach (var (username, password, displayName, role) in DemoUsers)
+        {
+            var user = new User { Username = username, DisplayName = displayName, Role = role };
+            user.PasswordHash = hasher.HashPassword(user, password);
+            db.Users.Add(user);
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedMenuAsync(MenuzDbContext db)
     {
         if (await db.Categories.AnyAsync()) return;
 

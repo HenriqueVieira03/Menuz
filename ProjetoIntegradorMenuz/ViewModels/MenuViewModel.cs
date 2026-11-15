@@ -24,13 +24,6 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public CartService Cart { get; }
         public TableService Table { get; }
 
-#if DEBUG
-        /// <summary>Mostra o atalho para a tela da cozinha só em builds de desenvolvimento.</summary>
-        public bool IsDevMode => true;
-#else
-        public bool IsDevMode => false;
-#endif
-
         /// <summary>Produto aberto no popup de personalização (null = popup fechado).</summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsCustomizing))]
@@ -86,8 +79,8 @@ namespace ProjetoIntegradorMenuz.ViewModels
             SelectedCategory = chip.Category;
         }
         [RelayCommand]
-        private async Task OpenKitchenAsync() =>
-    await Shell.Current.GoToAsync(nameof(KitchenPage));
+        private async Task OpenStaffAsync() =>
+            await Shell.Current.GoToAsync(nameof(LoginPage));
 
         [RelayCommand]
         private async Task LoadAsync()
@@ -180,8 +173,29 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [RelayCommand]
         private async Task SetTableAsync()
         {
-            if (Shell.Current?.CurrentPage is { } page)
+            if (Shell.Current?.CurrentPage is not { } page) return;
+
+            // Primeira configuração é livre; trocar a mesa depois fica com a gerência (evita cliente mudar por engano).
+            if (!Table.IsConfigured)
+            {
                 await Table.PromptAsync(page);
+                return;
+            }
+
+            var goToLogin = await page.DisplayAlertAsync(
+                Table.DisplayText,
+                "Para trocar a mesa deste tablet, entre como gerente.",
+                "Entrar", "Fechar");
+            if (goToLogin)
+                await Shell.Current.GoToAsync(nameof(LoginPage));
+        }
+
+        /// <summary>Recarrega o cardápio (ex.: depois que a gerência alterou produtos).</summary>
+        public async Task ReloadAsync()
+        {
+            Customization = null;
+            Chips.Clear();
+            await LoadCommand.ExecuteAsync(null);
         }
 
         [RelayCommand]

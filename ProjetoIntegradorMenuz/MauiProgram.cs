@@ -28,6 +28,8 @@ namespace ProjetoIntegradorMenuz
             builder.Services.AddSingleton<CartService>();
             builder.Services.AddSingleton<OrderHubClient>();
             builder.Services.AddSingleton<TableService>();
+            builder.Services.AddSingleton<AuthService>();
+            builder.Services.AddSingleton<AdminApiService>();
 
             // ViewModels
             builder.Services.AddSingleton<MenuViewModel>();
@@ -37,8 +39,15 @@ namespace ProjetoIntegradorMenuz
             builder.Services.AddSingleton<MenuPage>();
             builder.Services.AddTransient<CartPage>();
 
+            // Equipe: cozinha (KDS) e gerência (PDV), com login
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<KitchenViewModel>();
             builder.Services.AddTransient<KitchenPage>();
+            builder.Services.AddTransient<ManagerViewModel>();
+            builder.Services.AddTransient<ManagerPage>();
+            builder.Services.AddTransient<ProductEditViewModel>();
+            builder.Services.AddTransient<ProductEditPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

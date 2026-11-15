@@ -61,9 +61,18 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 _hub.Reconnected += OnReconnected;
                 _hub.StateChanged += OnStateChanged;
                 _subscribed = true;
+
+                ConnectionState = _hub.State;
+                try
+                {
+                    await _hub.AcquireAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"SignalR indisponível: {ex.Message}");
+                }
             }
 
-            ConnectionState = _hub.State;
             await ConnectAndSyncAsync();
         }
 
@@ -77,9 +86,8 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 _hub.Reconnected -= OnReconnected;
                 _hub.StateChanged -= OnStateChanged;
                 _subscribed = false;
+                await _hub.ReleaseAsync(); // o painel da gerência pode continuar usando a conexão
             }
-
-            await _hub.StopAsync();
         }
 
         /// <summary>
@@ -95,7 +103,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
             {
                 try
                 {
-                    await _hub.StartKitchenAsync();
+                    await _hub.EnsureConnectedAsync();
                 }
                 catch (Exception ex)
                 {

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.LoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
+    x:DataType="vm:LoginViewModel"
+    Title="Acesso da equipe"
+    Shell.NavBarIsVisible="False">
+
+    <Grid Padding="20">
+        <Border
+            Padding="28"
+            HorizontalOptions="Center"
+            MaximumWidthRequest="420"
+            Style="{StaticResource MzCard}"
+            VerticalOptions="Center">
+            <VerticalStackLayout Spacing="16">
+                <VerticalStackLayout Spacing="4">
+                    <Label FontSize="40" Text="🔒" />
+                    <Label Style="{StaticResource MzTitle}" Text="Acesso da equipe" />
+                    <Label Style="{StaticResource MzMuted}" Text="Cozinha e gerência. Clientes não precisam entrar." />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Style="{StaticResource MzName}" Text="Usuário" />
+                    <Entry
+                        x:Name="UsernameEntry"
+                        IsSpellCheckEnabled="False"
+                        IsTextPredictionEnabled="False"
+                        Keyboard="Plain"
+                        Placeholder="ex.: gerente"
+                        ReturnType="Next"
+                        Text="{Binding Username}" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Style="{StaticResource MzName}" Text="Senha" />
+                    <Entry
+                        IsPassword="True"
+                        Placeholder="Senha"
+                        ReturnCommand="{Binding LoginCommand}"
+                        ReturnType="Go"
+                        Text="{Binding Password}" />
+                </VerticalStackLayout>
+
+                <Label
+                    IsVisible="{Binding HasError}"
+                    Text="{Binding ErrorMessage}"
+                    TextColor="{AppThemeBinding Light={StaticResource MzDestructiveLight}, Dark={StaticResource MzDestructiveDark}}" />
+
+                <Grid>
+                    <Button
+                        Command="{Binding LoginCommand}"
+                        HeightRequest="50"
+                        Style="{StaticResource MzPrimaryButton}"
+                        Text="Entrar" />
+                    <ActivityIndicator
+                        HorizontalOptions="End"
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        Margin="0,0,16,0"
+                        Color="White" />
+                </Grid>
+
+                <Button
+                    Command="{Binding CancelCommand}"
+                    Style="{StaticResource MzGhostButton}"
+                    Text="Voltar ao cardápio" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

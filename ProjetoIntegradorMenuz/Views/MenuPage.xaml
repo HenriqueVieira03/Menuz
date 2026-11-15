@@ -66,13 +66,12 @@
                         Text="{Binding Table.DisplayText, StringFormat='🪑 {0}'}" />
                 </Border>
 
-                <!-- Botão de desenvolvimento: abre o painel da cozinha -->
+                <!-- Acesso da equipe (cozinha/gerência), com login -->
                 <Button
                     Grid.Column="3"
-                    Command="{Binding OpenKitchenCommand}"
-                    IsVisible="{Binding IsDevMode}"
+                    Command="{Binding OpenStaffCommand}"
                     Style="{StaticResource MzGhostButton}"
-                    Text="👨‍🍳 Cozinha (DEV)"
+                    Text="🔒 Equipe"
                     VerticalOptions="Center" />
 
                 <!-- Botão de Carrinho com Ícone Vetorial (Caminho SVG) -->

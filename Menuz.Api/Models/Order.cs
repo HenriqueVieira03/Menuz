@@ -35,8 +35,28 @@ public class Order
     public int TableNumber { get; set; }
 
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
+
+    // Horários de cada mudança de status (relógio do servidor, UTC): base dos indicadores do PDV.
+    public DateTime? PreparingAt { get; set; }
+    public DateTime? ReadyAt { get; set; }
+    public DateTime? DeliveredAt { get; set; }
+    public DateTime? CancelledAt { get; set; }
+
     public decimal Total { get; set; }
     public List<OrderItem> Items { get; set; } = new();
+
+    /// <summary>Muda o status e registra o horário da primeira vez que o pedido chegou nele.</summary>
+    public void SetStatus(OrderStatus status, DateTime now)
+    {
+        Status = status;
+        switch (status)
+        {
+            case OrderStatus.Preparing: PreparingAt ??= now; break;
+            case OrderStatus.Ready: ReadyAt ??= now; break;
+            case OrderStatus.Delivered: DeliveredAt ??= now; break;
+            case OrderStatus.Cancelled: CancelledAt ??= now; break;
+        }
+    }
 }
 
 /// <summary>

@@ -19,12 +19,26 @@ namespace ProjetoIntegradorMenuz.Services
         private readonly HubConnection _connection;
         private readonly SemaphoreSlim _gate = new(1, 1);
 
-        public OrderHubClient()
+        // Quantas telas estão usando a conexão (cozinha e painel da gerência podem estar abertos ao mesmo tempo).
+        private int _users;
+
+        public OrderHubClient(AuthService auth)
         {
             _connection = new HubConnectionBuilder()
-                .WithUrl(new Uri(new Uri(ApiConfig.BaseUrl), "hubs/orders"))
+                .WithUrl(new Uri(new Uri(ApiConfig.BaseUrl), "hubs/orders"), options =>
+                {
+                    // O hub exige login: o token vai em ?access_token= (WebSockets não aceita cabeçalhos).
+                    options.AccessTokenProvider = () => Task.FromResult(auth.Token);
+                })
                 .WithAutomaticReconnect(new RetryForever())
                 .Build();
+
+            // Ao sair da conta, ninguém mais pode receber pedidos com o token antigo.
+            auth.LoggedOut += () =>
+            {
+                _users = 0;
+                _ = StopConnectionAsync();
+            };
 
             _connection.On<OrderDto>(NewOrderEvent, dto => NewOrder?.Invoke(dto));
             _connection.On<OrderDto>(OrderUpdatedEvent, dto => OrderUpdated?.Invoke(dto));
@@ -58,8 +72,25 @@ namespace ProjetoIntegradorMenuz.Services
 
         public HubState State { get; private set; } = HubState.Disconnected;
 
-        /// <summary>Conecta e entra no grupo da cozinha. Lança exceção se o servidor estiver fora do ar.</summary>
-        public async Task StartKitchenAsync(CancellationToken ct = default)
+        /// <summary>Uma tela passa a usar a conexão: conecta se for a primeira. Lança exceção se o servidor estiver fora do ar.</summary>
+        public async Task AcquireAsync(CancellationToken ct = default)
+        {
+            Interlocked.Increment(ref _users);
+            await EnsureConnectedAsync(ct);
+        }
+
+        /// <summary>Uma tela deixou de usar a conexão: desconecta quando nenhuma outra estiver usando.</summary>
+        public async Task ReleaseAsync()
+        {
+            if (Interlocked.Decrement(ref _users) <= 0)
+            {
+                _users = 0;
+                await StopConnectionAsync();
+            }
+        }
+
+        /// <summary>Conecta (se preciso) e entra no grupo da equipe.</summary>
+        public async Task EnsureConnectedAsync(CancellationToken ct = default)
         {
             await _gate.WaitAsync(ct);
             try
@@ -87,7 +118,7 @@ namespace ProjetoIntegradorMenuz.Services
             }
         }
 
-        public async Task StopAsync()
+        private async Task StopConnectionAsync()
         {
             await _gate.WaitAsync();
             try
