@@ -16,7 +16,13 @@ namespace ProjetoIntegradorMenuz.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await _vm.SyncCommand.ExecuteAsync(null); // sincroniza ao abrir; depois, pelo botão
+            await _vm.StartAsync(); // conecta ao SignalR e carrega os pedidos em andamento
+        }
+
+        protected override async void OnDisappearing()
+        {
+            base.OnDisappearing();
+            await _vm.StopAsync();
         }
 
         // Colunas conforme a largura (tablet = 3+, celular = 1-2), igual ao cardápio.

@@ -54,7 +54,13 @@ namespace Menuz.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ClientSentAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("KitchenReceivedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")

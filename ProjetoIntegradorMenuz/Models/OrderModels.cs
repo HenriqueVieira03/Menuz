@@ -12,6 +12,9 @@
     public class CreateOrderRequest
     {
         public List<CreateOrderItemRequest> Items { get; set; } = new();
+
+        /// <summary>Momento do toque em "Finalizar pedido" (UTC), usado na medição de tempo de resposta.</summary>
+        public DateTime ClientSentAt { get; set; }
     }
 
     public class UpdateOrderStatusRequest

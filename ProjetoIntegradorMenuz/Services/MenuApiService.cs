@@ -21,6 +21,7 @@ namespace ProjetoIntegradorMenuz.Services
         {
             var request = new CreateOrderRequest
             {
+                ClientSentAt = DateTime.UtcNow,
                 Items = items.Select(i => new CreateOrderItemRequest
                 {
                     ProductId = i.Product.Id,

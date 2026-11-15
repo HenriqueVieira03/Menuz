@@ -12,7 +12,18 @@ public enum OrderStatus
 public class Order
 {
     public int Id { get; set; }
+
+    /// <summary>Momento em que o servidor recebeu e gravou o pedido (relógio do servidor, UTC).</summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Medição de tempo de resposta (REQ. 5)
+
+    /// <summary>Momento do toque em "Finalizar pedido" no tablet (relógio do tablet, UTC).</summary>
+    public DateTime? ClientSentAt { get; set; }
+
+    /// <summary>Momento em que a primeira tela da cozinha confirmou que exibiu o pedido (relógio do servidor, UTC).</summary>
+    public DateTime? KitchenReceivedAt { get; set; }
+
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public decimal Total { get; set; }
     public List<OrderItem> Items { get; set; } = new();

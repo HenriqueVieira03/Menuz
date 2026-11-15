@@ -29,7 +29,22 @@
                     FontSize="22"
                     Text="Cozinha"
                     TextColor="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
-                <Label Style="{StaticResource MzMuted}" Text="{Binding LastSyncText}" />
+                <HorizontalStackLayout Spacing="10">
+                    <Label
+                        FontFamily="OpenSansSemibold"
+                        Style="{StaticResource MzMuted}"
+                        Text="{Binding ConnectionText}">
+                        <Label.Triggers>
+                            <DataTrigger
+                                Binding="{Binding IsLive}"
+                                TargetType="Label"
+                                Value="True">
+                                <Setter Property="TextColor" Value="{StaticResource MzSuccess}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Label Style="{StaticResource MzMuted}" Text="{Binding LastSyncText}" />
+                </HorizontalStackLayout>
             </VerticalStackLayout>
             <Button
                 Grid.Column="2"
