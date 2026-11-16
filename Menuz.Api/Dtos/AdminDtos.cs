@@ -54,6 +54,8 @@ public record DashboardDto(
     double? AverageMinutesToReady,
     double? AverageMinutesToDeliver,
     List<TopProductDto> TopProducts,
-    LatencyStatsDto KitchenLatency);
+    LatencyStatsDto KitchenLatency,
+    int BillsClosedCount = 0,
+    decimal AverageBillTotal = 0m);
 
 public record ImageUploadDto(string Path);

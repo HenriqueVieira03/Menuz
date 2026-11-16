@@ -7,7 +7,7 @@ using ProjetoIntegradorMenuz.Views;
 
 namespace ProjetoIntegradorMenuz.ViewModels
 {
-    public enum ManagerTab { Overview, Orders, Menu }
+    public enum ManagerTab { Overview, Orders, Tables, Menu }
 
     /// <summary>
     /// Painel da gerência (PDV): indicadores do dia, todos os pedidos do dia (com cancelamento)
@@ -21,6 +21,8 @@ namespace ProjetoIntegradorMenuz.ViewModels
         private List<ManagerProductViewModel> _allProducts = new();
         private bool _subscribed;
         private bool _dashboardLoading;
+        private bool _billsLoading;
+        private CancellationTokenSource? _pollCts;
 
         public ManagerViewModel(AdminApiService admin, AuthService auth, OrderHubClient hub, TableService table)
         {
@@ -38,12 +40,20 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsOverview))]
         [NotifyPropertyChangedFor(nameof(IsOrders))]
+        [NotifyPropertyChangedFor(nameof(IsTables))]
         [NotifyPropertyChangedFor(nameof(IsMenu))]
         private ManagerTab selectedTab = ManagerTab.Overview;
 
         public bool IsOverview => SelectedTab == ManagerTab.Overview;
         public bool IsOrders => SelectedTab == ManagerTab.Orders;
+        public bool IsTables => SelectedTab == ManagerTab.Tables;
         public bool IsMenu => SelectedTab == ManagerTab.Menu;
+
+        // Ao abrir a aba de mesas, já mostra as contas como estão agora.
+        partial void OnSelectedTabChanged(ManagerTab value)
+        {
+            if (value == ManagerTab.Tables) _ = ReloadOpenBillsAsync();
+        }
 
         [RelayCommand]
         private void SelectTab(string tab)
@@ -68,6 +78,8 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(TicketText))]
         [NotifyPropertyChangedFor(nameof(OpenText))]
         [NotifyPropertyChangedFor(nameof(CancelledText))]
+        [NotifyPropertyChangedFor(nameof(BillsClosedText))]
+        [NotifyPropertyChangedFor(nameof(BillTicketText))]
         [NotifyPropertyChangedFor(nameof(ReadyText))]
         [NotifyPropertyChangedFor(nameof(DeliverText))]
         [NotifyPropertyChangedFor(nameof(LatencyAvgText))]
@@ -83,6 +95,8 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public string TicketText => Dashboard is null ? "—" : $"{Dashboard.AverageTicket:C2}";
         public string OpenText => Dashboard?.OpenCount.ToString() ?? "—";
         public string CancelledText => Dashboard?.CancelledCount.ToString() ?? "—";
+        public string BillsClosedText => Dashboard?.BillsClosedCount.ToString() ?? "—";
+        public string BillTicketText => Dashboard is null ? "—" : $"{Dashboard.AverageBillTotal:C2}";
         public string ReadyText => Minutes(Dashboard?.AverageMinutesToReady);
         public string DeliverText => Minutes(Dashboard?.AverageMinutesToDeliver);
 
@@ -99,6 +113,17 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         /// <summary>Pedidos de hoje, do mais novo para o mais antigo.</summary>
         public ObservableCollection<OrderCardViewModel> Orders { get; } = new();
+
+        // ---------------- Mesas abertas ----------------
+
+        /// <summary>Uma conta aberta por mesa, em ordem de mesa.</summary>
+        public ObservableCollection<OpenBillViewModel> OpenBills { get; } = new();
+        public bool HasOpenBills => OpenBills.Count > 0;
+        public bool HasNoOpenBills => OpenBills.Count == 0;
+
+        public string OpenBillsSummary => OpenBills.Count == 0
+            ? "Nenhuma mesa com conta aberta."
+            : $"{OpenBills.Count} {(OpenBills.Count == 1 ? "mesa" : "mesas")} com conta aberta · {OpenBills.Sum(b => b.Total):C2} em aberto";
 
         // ---------------- Cardápio ----------------
 
@@ -123,10 +148,37 @@ namespace ProjetoIntegradorMenuz.ViewModels
             }
 
             await RefreshAsync();
+
+            // Enquanto a aba "Mesas abertas" está visível, a lista se atualiza sozinha (cliente que paga pelo tablet,
+            // cozinha que conclui pedidos...), sem depender de eventos do servidor.
+            _pollCts?.Cancel();
+            _pollCts?.Dispose();
+            _pollCts = new CancellationTokenSource();
+            _ = PollOpenBillsAsync(_pollCts.Token);
+        }
+
+        private async Task PollOpenBillsAsync(CancellationToken ct)
+        {
+            try
+            {
+                using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+                while (await timer.WaitForNextTickAsync(ct))
+                {
+                    if (IsTables) await ReloadOpenBillsAsync();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Painel fechado: fim normal do polling.
+            }
         }
 
         public async Task StopAsync()
         {
+            _pollCts?.Cancel();
+            _pollCts?.Dispose();
+            _pollCts = null;
+
             if (!_subscribed) return;
             _hub.NewOrder -= OnOrderEvent;
             _hub.OrderUpdated -= OnOrderEvent;
@@ -145,9 +197,11 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 var ordersTask = _admin.GetOrdersAsync(from, to);
                 var categoriesTask = _admin.GetCategoriesAsync();
                 var productsTask = _admin.GetProductsAsync();
-                await Task.WhenAll(dashboardTask, ordersTask, categoriesTask, productsTask);
+                var billsTask = _admin.GetOpenBillsAsync();
+                await Task.WhenAll(dashboardTask, ordersTask, categoriesTask, productsTask, billsTask);
 
                 ApplyDashboard(dashboardTask.Result);
+                ApplyOpenBills(billsTask.Result);
 
                 Orders.Clear();
                 foreach (var o in ordersTask.Result.OrderByDescending(o => o.CreatedAt))
@@ -197,6 +251,29 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 card.Update(await _admin.SetOrderStatusAsync(card.Id, OrderStatus.Cancelled));
                 await ReloadDashboardAsync();
             }, showBusy: false);
+        }
+
+        // ---------------- Ações: mesas abertas ----------------
+
+        [RelayCommand]
+        private async Task CloseOpenBillAsync(OpenBillViewModel? bill)
+        {
+            if (bill is null || !bill.CanClose || Page is not { } page) return;
+
+            var confirm = await page.DisplayAlertAsync(
+                $"Encerrar a conta da {bill.Title}?",
+                $"Total: {bill.TotalText}. A conta será marcada como paga (simulação) e o próximo pedido da mesa abrirá uma conta nova.",
+                "Encerrar conta", "Voltar");
+            if (!confirm) return;
+
+            await RunAsync(async () =>
+            {
+                await _admin.CloseBillAsync(bill.Id);
+                await ReloadDashboardAsync();
+            }, showBusy: false);
+
+            // Em sucesso a mesa sai da lista; se o servidor recusou (ex.: pedido em andamento), mostra o estado real.
+            await ReloadOpenBillsAsync();
         }
 
         // ---------------- Ações: cardápio ----------------
@@ -314,6 +391,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 else card.Update(dto);
 
                 await ReloadDashboardAsync();
+                if (IsTables) await ReloadOpenBillsAsync();
             });
 
         private void OnReconnected() => MainThread.BeginInvokeOnMainThread(async () => await RefreshAsync());
@@ -346,6 +424,52 @@ namespace ProjetoIntegradorMenuz.ViewModels
             {
                 _dashboardLoading = false;
             }
+        }
+
+        private async Task ReloadOpenBillsAsync()
+        {
+            if (_billsLoading) return;
+            _billsLoading = true;
+            try
+            {
+                ApplyOpenBills(await _admin.GetOpenBillsAsync());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Falha ao atualizar mesas abertas: {ex.Message}");
+            }
+            finally
+            {
+                _billsLoading = false;
+            }
+        }
+
+        /// <summary>Reconcilia a lista com o servidor sem recriar os cards que já existem.</summary>
+        private void ApplyOpenBills(List<OpenBill> bills)
+        {
+            var ids = bills.Select(b => b.Id).ToHashSet();
+            for (var i = OpenBills.Count - 1; i >= 0; i--)
+                if (!ids.Contains(OpenBills[i].Id))
+                    OpenBills.RemoveAt(i);
+
+            foreach (var dto in bills.OrderBy(b => b.TableNumber))
+            {
+                var existing = OpenBills.FirstOrDefault(b => b.Id == dto.Id);
+                if (existing is not null)
+                {
+                    existing.Update(dto);
+                    continue;
+                }
+
+                var index = 0;
+                while (index < OpenBills.Count && OpenBills[index].TableNumber < dto.TableNumber)
+                    index++;
+                OpenBills.Insert(index, new OpenBillViewModel(dto));
+            }
+
+            OnPropertyChanged(nameof(HasOpenBills));
+            OnPropertyChanged(nameof(HasNoOpenBills));
+            OnPropertyChanged(nameof(OpenBillsSummary));
         }
 
         private void ApplyDashboard(Dashboard d)

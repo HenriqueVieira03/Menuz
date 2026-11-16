@@ -131,6 +131,23 @@
                 </Border>
                 <Border Style="{StaticResource TabItem}">
                     <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Tables" />
+                    </Border.GestureRecognizers>
+                    <Border.Triggers>
+                        <DataTrigger Binding="{Binding IsTables}" TargetType="Border" Value="True">
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Label Style="{StaticResource TabLabel}" Text="Mesas abertas">
+                        <Label.Triggers>
+                            <DataTrigger Binding="{Binding IsTables}" TargetType="Label" Value="True">
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </Border>
+                <Border Style="{StaticResource TabItem}">
+                    <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Menu" />
                     </Border.GestureRecognizers>
                     <Border.Triggers>
@@ -213,6 +230,18 @@
                                 <VerticalStackLayout Spacing="4">
                                     <Label Style="{StaticResource MzMuted}" Text="Cancelados" />
                                     <Label Style="{StaticResource KpiValue}" Text="{Binding CancelledText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Style="{StaticResource MzMuted}" Text="Contas fechadas" />
+                                    <Label Style="{StaticResource KpiValue}" Text="{Binding BillsClosedText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Style="{StaticResource MzMuted}" Text="Ticket médio por conta" />
+                                    <Label Style="{StaticResource KpiValue}" Text="{Binding BillTicketText}" />
                                 </VerticalStackLayout>
                             </Border>
                         </FlexLayout>
@@ -307,6 +336,70 @@
                     </Border>
                 </VerticalStackLayout>
             </ScrollView>
+
+            <!-- ================= Mesas abertas ================= -->
+            <CollectionView
+                x:Name="OpenBillsList"
+                Margin="20,12,20,0"
+                IsVisible="{Binding IsTables}"
+                ItemsSource="{Binding OpenBills}"
+                SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.Header>
+                    <VerticalStackLayout Margin="0,0,0,12" Spacing="2">
+                        <Label Style="{StaticResource MzSection}" Text="Contas abertas por mesa" />
+                        <Label Style="{StaticResource MzMuted}" Text="{Binding OpenBillsSummary}" />
+                    </VerticalStackLayout>
+                </CollectionView.Header>
+                <CollectionView.EmptyView>
+                    <Label
+                        Margin="0,48"
+                        HorizontalOptions="Center"
+                        Style="{StaticResource MzMuted}"
+                        Text="Nenhuma mesa com conta aberta." />
+                </CollectionView.EmptyView>
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="40" Color="Transparent" />
+                </CollectionView.Footer>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OpenBillViewModel">
+                        <Border Padding="18,14" Style="{StaticResource MzCard}">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+                                    <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" />
+                                    <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
+                                    <Label
+                                        FontFamily="OpenSansSemibold"
+                                        FontSize="13"
+                                        IsVisible="{Binding HasInProgress}"
+                                        Text="{Binding InProgressText}"
+                                        TextColor="{StaticResource MzWarningText}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    HorizontalOptions="End"
+                                    Spacing="8"
+                                    VerticalOptions="Center">
+                                    <Label
+                                        FontSize="22"
+                                        HorizontalOptions="End"
+                                        Style="{StaticResource MzPrice}"
+                                        Text="{Binding TotalText}" />
+                                    <Button
+                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.CloseOpenBillCommand}"
+                                        CommandParameter="{Binding .}"
+                                        HeightRequest="44"
+                                        IsEnabled="{Binding CanClose}"
+                                        Style="{StaticResource MzPrimaryButton}"
+                                        Text="Encerrar conta" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
             <!-- ================= Pedidos de hoje ================= -->
             <CollectionView

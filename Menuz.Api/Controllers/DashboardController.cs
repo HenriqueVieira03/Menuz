@@ -49,6 +49,12 @@ public class DashboardController(MenuzDbContext db) : ControllerBase
             .Where(o => o.KitchenReceivedAt != null)
             .Select(o => (o.KitchenReceivedAt!.Value - o.CreatedAt).TotalMilliseconds);
 
+        // Contas pagas no período (ticket médio por conta = total pago / contas fechadas).
+        var closedBills = await db.Bills.AsNoTracking()
+            .Where(b => b.Status == BillStatus.Paid && b.ClosedAt >= start && b.ClosedAt < end)
+            .Select(b => b.TotalPaid ?? 0m)
+            .ToListAsync(ct);
+
         return new DashboardDto(
             start,
             end,
@@ -60,6 +66,8 @@ public class DashboardController(MenuzDbContext db) : ControllerBase
             AverageMinutesToReady: AverageMinutes(valid.Where(o => o.ReadyAt != null).Select(o => o.ReadyAt!.Value - o.CreatedAt)),
             AverageMinutesToDeliver: AverageMinutes(valid.Where(o => o.DeliveredAt != null).Select(o => o.DeliveredAt!.Value - o.CreatedAt)),
             TopProducts: top,
-            KitchenLatency: OrdersController.Stats(latency));
+            KitchenLatency: OrdersController.Stats(latency),
+            BillsClosedCount: closedBills.Count,
+            AverageBillTotal: closedBills.Count == 0 ? 0 : Math.Round(closedBills.Sum() / closedBills.Count, 2));
     }
 }

@@ -116,5 +116,20 @@ namespace ProjetoIntegradorMenuz.Models
         public double? AverageMinutesToDeliver { get; set; }
         public List<TopProduct> TopProducts { get; set; } = new();
         public LatencyStats KitchenLatency { get; set; } = new();
+
+        /// <summary>Contas pagas no período e o ticket médio por conta.</summary>
+        public int BillsClosedCount { get; set; }
+        public decimal AverageBillTotal { get; set; }
+    }
+
+    /// <summary>Conta aberta de uma mesa (GET /api/admin/bills/open).</summary>
+    public class OpenBill
+    {
+        public int Id { get; set; }
+        public int TableNumber { get; set; }
+        public DateTime OpenedAt { get; set; }
+        public decimal Total { get; set; }
+        public int OrdersCount { get; set; }
+        public int InProgressCount { get; set; }
     }
 }
