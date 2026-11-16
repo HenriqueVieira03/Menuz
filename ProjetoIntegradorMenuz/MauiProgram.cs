@@ -37,10 +37,12 @@ namespace ProjetoIntegradorMenuz
             // ViewModels
             builder.Services.AddSingleton<MenuViewModel>();
             builder.Services.AddTransient<CartViewModel>();
+            builder.Services.AddTransient<MyOrdersViewModel>();
 
             // Views
             builder.Services.AddSingleton<MenuPage>();
             builder.Services.AddTransient<CartPage>();
+            builder.Services.AddTransient<MyOrdersPage>();
 
             // Equipe: cozinha (KDS) e gerência (PDV), com login
             builder.Services.AddTransient<LoginViewModel>();

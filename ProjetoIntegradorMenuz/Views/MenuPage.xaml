@@ -13,7 +13,7 @@
         <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0">
 
             <!-- ================= Barra superior ================= -->
-            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,Auto" Style="{StaticResource MzAppBar}">
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" Style="{StaticResource MzAppBar}">
                 <Border Style="{StaticResource MzLogo}">
                     <Label
                         FontFamily="OpenSansSemibold"
@@ -56,9 +56,17 @@
                     </Label>
                 </Border>
 
-                <!-- Acesso da equipe (cozinha/gerência), com login -->
+                <!-- Acompanhar os pedidos da mesa -->
                 <Button
                     Grid.Column="3"
+                    Command="{Binding OpenMyOrdersCommand}"
+                    Style="{StaticResource MzOutlineButton}"
+                    Text="🧾  Meus pedidos"
+                    VerticalOptions="Center" />
+
+                <!-- Acesso da equipe (cozinha/gerência), com login -->
+                <Button
+                    Grid.Column="4"
                     Command="{Binding OpenStaffCommand}"
                     Style="{StaticResource MzGhostButton}"
                     Text="🔒  Equipe"
@@ -66,7 +74,7 @@
 
                 <!-- Carrinho com contador -->
                 <Grid
-                    Grid.Column="4"
+                    Grid.Column="5"
                     HeightRequest="48"
                     VerticalOptions="Center"
                     WidthRequest="52">

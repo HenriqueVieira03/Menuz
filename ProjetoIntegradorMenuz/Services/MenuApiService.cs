@@ -48,6 +48,16 @@ namespace ProjetoIntegradorMenuz.Services
             return (await response.Content.ReadFromJsonAsync<OrderDto>(cancellationToken: ct))!;
         }
 
+        /// <summary>GET /api/tables/{n}/bill: conta aberta da mesa com os pedidos e status. Null se a mesa ainda não pediu nada.</summary>
+        public async Task<BillDto?> GetOpenBillAsync(int tableNumber, CancellationToken ct = default)
+        {
+            var response = await _http.GetAsync($"api/tables/{tableNumber}/bill", ct);
+            if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return null;
+
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<BillDto>(cancellationToken: ct);
+        }
+
         /// <summary>GET /api/orders: pedidos em andamento (painel da cozinha).</summary>
         public async Task<List<OrderDto>> GetActiveOrdersAsync(CancellationToken ct = default)
         {

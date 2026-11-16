@@ -198,6 +198,19 @@ namespace ProjetoIntegradorMenuz.ViewModels
             await LoadCommand.ExecuteAsync(null);
         }
 
+        /// <summary>Abre "Meus pedidos". Sem mesa definida, pergunta a mesa antes (sem ela não há conta para mostrar).</summary>
+        [RelayCommand]
+        private async Task OpenMyOrdersAsync()
+        {
+            if (!Table.IsConfigured)
+            {
+                if (Shell.Current?.CurrentPage is not { } page || !await Table.PromptAsync(page))
+                    return;
+            }
+
+            await Shell.Current.GoToAsync(nameof(MyOrdersPage));
+        }
+
         [RelayCommand]
         private async Task OpenCartAsync() =>
             await Shell.Current.GoToAsync(nameof(CartPage));
