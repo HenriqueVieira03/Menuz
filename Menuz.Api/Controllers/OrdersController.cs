@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Menuz.Api.Controllers;
 
@@ -56,6 +55,11 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
             items.Add(item!);
         }
 
+        // Trava a mesa durante a gravação: assim o pedido nunca cai numa conta que está sendo fechada
+        // no mesmo instante (o fechamento usa a mesma trava).
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.LockTableAsync(request.TableNumber, ct);
+
         // Todo pedido entra na conta aberta da mesa (e abre uma nova se não houver).
         var bill = await GetOrOpenBillAsync(request.TableNumber, ct);
 
@@ -70,6 +74,7 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
 
         db.Orders.Add(order);
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         var dto = order.ToDto();
 
@@ -119,11 +124,15 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
         if (request.Status == OrderStatus.Cancelled && !User.IsInRole(Roles.Manager))
             return Forbid();
 
-        var order = await db.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id, ct);
+        var order = await db.Orders.Include(o => o.Items).Include(o => o.Bill).FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null) return NotFound();
 
         if (order.Status is OrderStatus.Delivered or OrderStatus.Cancelled && order.Status != request.Status)
             return BadRequest("Pedido já finalizado; o status não pode mais ser alterado.");
+
+        // O total pago já foi gravado no fechamento: cancelar depois bagunçaria a contabilidade.
+        if (request.Status == OrderStatus.Cancelled && order.Bill?.Status == BillStatus.Paid)
+            return Conflict("Este pedido pertence a uma conta já paga e não pode ser cancelado.");
 
         order.SetStatus(request.Status, DateTime.UtcNow);
         await db.SaveChangesAsync(ct);
@@ -227,8 +236,8 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
     }
 
     /// <summary>
-    /// Devolve a conta aberta da mesa ou cria uma. Se dois tablets da mesma mesa pedirem ao mesmo tempo,
-    /// o índice único do banco recusa a segunda conta e usamos a que o outro tablet acabou de abrir.
+    /// Devolve a conta aberta da mesa ou cria uma. Deve ser chamado com a trava da mesa já adquirida
+    /// (ver Create); o índice único do banco continua como segunda barreira.
     /// </summary>
     private async Task<Bill> GetOrOpenBillAsync(int tableNumber, CancellationToken ct)
     {
@@ -238,17 +247,8 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
 
         bill = new Bill { TableNumber = tableNumber };
         db.Bills.Add(bill);
-        try
-        {
-            await db.SaveChangesAsync(ct);
-            return bill;
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
-        {
-            db.Entry(bill).State = EntityState.Detached;
-            return await db.Bills.FirstAsync(
-                b => b.TableNumber == tableNumber && b.Status == BillStatus.Open, ct);
-        }
+        await db.SaveChangesAsync(ct);
+        return bill;
     }
 
     private IQueryable<LatencyRow> LatencyQuery(DateTime? from, DateTime? to)
