@@ -15,5 +15,15 @@ namespace ProjetoIntegradorMenuz.Models
         public decimal Total { get; set; }
 
         public List<OrderDto> Orders { get; set; } = new();
+
+        /// <summary>Preenchidos só depois que a conta é paga.</summary>
+        public DateTime? ClosedAt { get; set; }
+        public decimal? TotalPaid { get; set; }
+    }
+
+    /// <summary>Fechamento da conta: envia o total que o cliente viu no resumo.</summary>
+    public class CloseBillRequest
+    {
+        public decimal ExpectedTotal { get; set; }
     }
 }

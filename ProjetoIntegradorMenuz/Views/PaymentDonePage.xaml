@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.PaymentDonePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Pagamento realizado"
+    Shell.NavBarIsVisible="False">
+
+    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
+
+    <Grid Padding="20">
+        <Border
+            Padding="40,44"
+            HorizontalOptions="Center"
+            MaximumWidthRequest="480"
+            Style="{StaticResource MzCardRaised}"
+            VerticalOptions="Center">
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="18">
+
+                <Border
+                    BackgroundColor="{StaticResource MzSuccessTint}"
+                    HeightRequest="96"
+                    HorizontalOptions="Center"
+                    StrokeThickness="0"
+                    WidthRequest="96">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="48" />
+                    </Border.StrokeShape>
+                    <Label
+                        FontFamily="OpenSansSemibold"
+                        FontSize="44"
+                        HorizontalOptions="Center"
+                        Text="✓"
+                        TextColor="{StaticResource MzSuccessText}"
+                        VerticalOptions="Center" />
+                </Border>
+
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        HorizontalOptions="Center"
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource MzDisplay}"
+                        Text="Pagamento realizado!" />
+                    <Label
+                        HorizontalOptions="Center"
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource MzBody}"
+                        Text="Obrigado pela visita! Esperamos você de novo em breve."
+                        TextColor="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
+                </VerticalStackLayout>
+
+                <Border
+                    Margin="0,6"
+                    Padding="16,12"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
+                    StrokeThickness="0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                        <Label
+                            x:Name="TableLabel"
+                            HorizontalOptions="Center"
+                            Style="{StaticResource MzMuted}" />
+                        <Label
+                            x:Name="AmountLabel"
+                            FontFamily="OpenSansSemibold"
+                            FontSize="26"
+                            HorizontalOptions="Center"
+                            TextColor="{StaticResource MzPrimaryDeep}" />
+                        <Label
+                            HorizontalOptions="Center"
+                            Style="{StaticResource MzMuted}"
+                            Text="Total pago (simulação)" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button
+                    Clicked="VoltarMenu_Clicked"
+                    HeightRequest="52"
+                    Style="{StaticResource MzPrimaryButton}"
+                    Text="Voltar ao cardápio" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

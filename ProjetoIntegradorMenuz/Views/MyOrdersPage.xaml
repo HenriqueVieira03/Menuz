@@ -230,18 +230,25 @@
             Padding="20,16"
             IsVisible="{Binding HasOrders}"
             Style="{StaticResource MzCardRaised}">
-            <Grid ColumnDefinitions="*,Auto">
-                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                    <Label Style="{StaticResource MzTitle}" Text="Total da conta" />
-                    <Label Style="{StaticResource MzMuted}" Text="{Binding OrdersCountText}" />
-                </VerticalStackLayout>
-                <Label
-                    Grid.Column="1"
-                    FontSize="24"
-                    Style="{StaticResource MzPrice}"
-                    Text="{Binding Total, StringFormat='{0:C2}'}"
-                    VerticalOptions="Center" />
-            </Grid>
+            <VerticalStackLayout Spacing="14">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <Label Style="{StaticResource MzTitle}" Text="Total da conta" />
+                        <Label Style="{StaticResource MzMuted}" Text="{Binding OrdersCountText}" />
+                    </VerticalStackLayout>
+                    <Label
+                        Grid.Column="1"
+                        FontSize="24"
+                        Style="{StaticResource MzPrice}"
+                        Text="{Binding Total, StringFormat='{0:C2}'}"
+                        VerticalOptions="Center" />
+                </Grid>
+                <Button
+                    Command="{Binding CloseBillCommand}"
+                    HeightRequest="52"
+                    Style="{StaticResource MzPrimaryButton}"
+                    Text="Fechar conta" />
+            </VerticalStackLayout>
         </Border>
     </Grid>
 </ContentPage>

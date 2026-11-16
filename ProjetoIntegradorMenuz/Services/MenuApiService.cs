@@ -58,6 +58,25 @@ namespace ProjetoIntegradorMenuz.Services
             return await response.Content.ReadFromJsonAsync<BillDto>(cancellationToken: ct);
         }
 
+        /// <summary>
+        /// POST /api/tables/{n}/bill/close: fecha a conta (pagamento simulado). Devolve a conta paga ou a mensagem
+        /// de recusa do servidor (pedidos em andamento, total que mudou, mesa sem conta).
+        /// </summary>
+        public async Task<(BillDto? Bill, string? Error)> CloseBillAsync(int tableNumber, decimal expectedTotal, CancellationToken ct = default)
+        {
+            var response = await _http.PostAsJsonAsync(
+                $"api/tables/{tableNumber}/bill/close", new CloseBillRequest { ExpectedTotal = expectedTotal }, ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var bill = await response.Content.ReadFromJsonAsync<BillDto>(cancellationToken: ct);
+                return bill is null ? (null, "Resposta inválida do servidor.") : (bill, null);
+            }
+
+            var message = (await response.Content.ReadAsStringAsync(ct)).Trim().Trim('"');
+            return (null, string.IsNullOrWhiteSpace(message) ? "Não foi possível fechar a conta." : message);
+        }
+
         /// <summary>GET /api/orders: pedidos em andamento (painel da cozinha).</summary>
         public async Task<List<OrderDto>> GetActiveOrdersAsync(CancellationToken ct = default)
         {

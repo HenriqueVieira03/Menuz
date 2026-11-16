@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ProjetoIntegradorMenuz.Models;
 using ProjetoIntegradorMenuz.Services;
+using ProjetoIntegradorMenuz.Views;
 
 namespace ProjetoIntegradorMenuz.ViewModels
 {
@@ -240,5 +241,9 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         [RelayCommand]
         private async Task GoBackAsync() => await Shell.Current.GoToAsync("..");
+
+        /// <summary>Abre o resumo da conta, de onde o cliente faz o pagamento (simulado).</summary>
+        [RelayCommand]
+        private async Task CloseBillAsync() => await Shell.Current.GoToAsync(nameof(CloseBillPage));
     }
 }
