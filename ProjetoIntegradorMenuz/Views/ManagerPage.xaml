@@ -358,7 +358,7 @@
                         Margin="0,48"
                         HorizontalOptions="Center"
                         Style="{StaticResource MzMuted}"
-                        Text="Nenhuma mesa com conta aberta." />
+                         />
                 </CollectionView.EmptyView>
                 <CollectionView.Footer>
                     <BoxView HeightRequest="40" Color="Transparent" />

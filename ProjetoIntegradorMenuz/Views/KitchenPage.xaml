@@ -117,10 +117,14 @@
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="vm:OrderCardViewModel">
-                        <Border Padding="0" Style="{StaticResource MzCard}">
-                            <Grid RowDefinitions="5,Auto">
+                        <Border
+            Padding="0"
+            HeightRequest="400"
+            Style="{StaticResource MzCard}">
+                            <Grid RowDefinitions="5,Auto,Auto,*,Auto">
+
                                 <!-- Faixa de cor do status -->
-                                <BoxView Color="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}">
+                                <BoxView Grid.Row="0" Color="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}">
                                     <BoxView.Triggers>
                                         <DataTrigger Binding="{Binding IsPreparing}" TargetType="BoxView" Value="True">
                                             <Setter Property="Color" Value="#E9A23B" />
@@ -131,84 +135,91 @@
                                     </BoxView.Triggers>
                                 </BoxView>
 
-                                <VerticalStackLayout Grid.Row="1" Padding="18,14,18,18" Spacing="14">
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                        <VerticalStackLayout Spacing="2">
-                                            <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" />
-                                            <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
-                                        </VerticalStackLayout>
+                                <!-- Cabeçalho (fixo) -->
+                                <Grid
+                    Grid.Row="1"
+                    Padding="18,14,18,12"
+                    ColumnDefinitions="*,Auto"
+                    ColumnSpacing="8">
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" LineBreakMode="TailTruncation" MaxLines="1" />
+                                        <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
+                                    </VerticalStackLayout>
 
-                                        <!-- Selo de status -->
-                                        <Border
-                                            Grid.Column="1"
-                                            BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
-                                            Style="{StaticResource MzBadge}"
-                                            VerticalOptions="Start">
-                                            <Border.Triggers>
-                                                <DataTrigger Binding="{Binding IsPreparing}" TargetType="Border" Value="True">
-                                                    <Setter Property="BackgroundColor" Value="{StaticResource MzWarningTint}" />
+                                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
+                        Style="{StaticResource MzBadge}"
+                        VerticalOptions="Start">
+                                        <Border.Triggers>
+                                            <DataTrigger Binding="{Binding IsPreparing}" TargetType="Border" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource MzWarningTint}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsReady}" TargetType="Border" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource MzSuccessTint}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Label
+                            Style="{StaticResource MzBadgeLabel}"
+                            Text="{Binding StatusText}"
+                            TextColor="{StaticResource MzPrimaryDeep}">
+                                            <Label.Triggers>
+                                                <DataTrigger Binding="{Binding IsPreparing}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="{StaticResource MzWarningText}" />
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsReady}" TargetType="Border" Value="True">
-                                                    <Setter Property="BackgroundColor" Value="{StaticResource MzSuccessTint}" />
+                                                <DataTrigger Binding="{Binding IsReady}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="{StaticResource MzSuccessText}" />
                                                 </DataTrigger>
-                                            </Border.Triggers>
-                                            <Label
-                                                Style="{StaticResource MzBadgeLabel}"
-                                                Text="{Binding StatusText}"
-                                                TextColor="{StaticResource MzPrimaryDeep}">
-                                                <Label.Triggers>
-                                                    <DataTrigger Binding="{Binding IsPreparing}" TargetType="Label" Value="True">
-                                                        <Setter Property="TextColor" Value="{StaticResource MzWarningText}" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsReady}" TargetType="Label" Value="True">
-                                                        <Setter Property="TextColor" Value="{StaticResource MzSuccessText}" />
-                                                    </DataTrigger>
-                                                </Label.Triggers>
-                                            </Label>
-                                        </Border>
-                                    </Grid>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </Grid>
 
-                                    <BoxView Style="{StaticResource MzDivider}" />
+                                <BoxView Grid.Row="2" Margin="18,0" Style="{StaticResource MzDivider}" />
 
-                                    <!-- Itens do pedido -->
-                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="12">
+                                <!-- Itens (rolam quando não cabem) -->
+                                <ScrollView Grid.Row="3" VerticalScrollBarVisibility="Default">
+                                    <VerticalStackLayout
+                        Padding="18,12"
+                        BindableLayout.ItemsSource="{Binding Lines}"
+                        Spacing="12">
                                         <BindableLayout.ItemTemplate>
                                             <DataTemplate x:DataType="vm:OrderLineViewModel">
                                                 <VerticalStackLayout Spacing="2">
                                                     <Label
-                                                        FontFamily="OpenSansSemibold"
-                                                        FontSize="16"
-                                                        LineBreakMode="WordWrap"
-                                                        Text="{Binding Text}" />
-                                                    <!-- Escolhas do cliente: destacadas para a cozinha não deixar passar -->
+                                        FontFamily="OpenSansSemibold"
+                                        FontSize="16"
+                                        LineBreakMode="WordWrap"
+                                        Text="{Binding Text}" />
                                                     <Label
-                                                        FontFamily="OpenSansSemibold"
-                                                        FontSize="14"
-                                                        IsVisible="{Binding HasDetails}"
-                                                        LineBreakMode="WordWrap"
-                                                        Text="{Binding Details}"
-                                                        TextColor="{StaticResource MzPrimaryDeep}" />
+                                        FontFamily="OpenSansSemibold"
+                                        FontSize="14"
+                                        IsVisible="{Binding HasDetails}"
+                                        LineBreakMode="WordWrap"
+                                        Text="{Binding Details}"
+                                        TextColor="{StaticResource MzPrimaryDeep}" />
                                                 </VerticalStackLayout>
                                             </DataTemplate>
                                         </BindableLayout.ItemTemplate>
                                     </VerticalStackLayout>
+                                </ScrollView>
 
+                                <!-- Rodapé (fixo): total + botão -->
+                                <VerticalStackLayout Grid.Row="4" Padding="18,0,18,18" Spacing="12">
                                     <BoxView Style="{StaticResource MzDivider}" />
-
                                     <Grid ColumnDefinitions="*,Auto">
                                         <Label Style="{StaticResource MzMuted}" Text="Total do pedido" VerticalOptions="Center" />
                                         <Label
-                                            Grid.Column="1"
-                                            Style="{StaticResource MzPrice}"
-                                            Text="{Binding Total, StringFormat='{0:C2}'}" />
+                            Grid.Column="1"
+                            Style="{StaticResource MzPrice}"
+                            Text="{Binding Total, StringFormat='{0:C2}'}" />
                                     </Grid>
-
                                     <Button
-                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.AdvanceCommand}"
-                                        CommandParameter="{Binding .}"
-                                        HeightRequest="50"
-                                        Style="{StaticResource MzPrimaryButton}"
-                                        Text="{Binding ActionText}">
+                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.AdvanceCommand}"
+                        CommandParameter="{Binding .}"
+                        HeightRequest="50"
+                        Style="{StaticResource MzPrimaryButton}"
+                        Text="{Binding ActionText}">
                                         <Button.Triggers>
                                             <DataTrigger Binding="{Binding IsReady}" TargetType="Button" Value="True">
                                                 <Setter Property="BackgroundColor" Value="{StaticResource MzSuccess}" />
