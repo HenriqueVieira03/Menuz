@@ -30,6 +30,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(HasInProgress))]
         [NotifyPropertyChangedFor(nameof(CanClose))]
         [NotifyPropertyChangedFor(nameof(InProgressText))]
+        [NotifyPropertyChangedFor(nameof(InProgressNotice))]
         private int inProgressCount;
 
         public string Title => $"Mesa {TableNumber}";
@@ -43,6 +44,9 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         /// <summary>A API só encerra contas sem pedidos Novos ou Em preparo.</summary>
         public bool CanClose => InProgressCount == 0;
+
+        /// <summary>Aviso para o cartão da mesa: vazio quando não há pedido em andamento (o aviso some).</summary>
+        public string InProgressNotice => HasInProgress ? InProgressText : string.Empty;
 
         public string InProgressText => InProgressCount == 1
             ? "1 pedido em andamento. Conclua ou cancele antes de encerrar."

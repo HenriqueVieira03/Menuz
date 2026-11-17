@@ -86,7 +86,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
             + SelectedAddons.Sum(a => a.Price);
 
         public decimal Total => UnitPrice * Quantity;
-        public string AddButtonText => $"Adicionar  •  {Total:C2}";
+        public string AddButtonText => $"Adicionar ao pedido · {Total:C2}";
 
         private ProductSize? SelectedSize
         {

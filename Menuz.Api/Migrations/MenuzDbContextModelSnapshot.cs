@@ -301,6 +301,34 @@ namespace Menuz.Api.Migrations
                     b.ToTable("ProductSizes");
                 });
 
+            modelBuilder.Entity("Menuz.Api.Models.RestaurantSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AccentKey")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("RestaurantName")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("ThemeMode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Settings", (string)null);
+                });
+
             modelBuilder.Entity("Menuz.Api.Models.User", b =>
                 {
                     b.Property<int>("Id")

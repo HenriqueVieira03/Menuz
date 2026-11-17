@@ -3,125 +3,89 @@
     x:Class="ProjetoIntegradorMenuz.Views.LoginPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:ProjetoIntegradorMenuz.Controls"
     xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
     x:DataType="vm:LoginViewModel"
     Title="Acesso da equipe"
     Shell.NavBarIsVisible="False">
 
-    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
 
-    <Grid Padding="20">
-        <Border
-            Padding="0"
+    <Grid Padding="24">
+        <VerticalStackLayout
             HorizontalOptions="Center"
-            MaximumWidthRequest="440"
-            Style="{StaticResource MzCardRaised}"
-            VerticalOptions="Center">
-            <VerticalStackLayout>
+            MaximumWidthRequest="400"
+            Spacing="24"
+            VerticalOptions="Center"
+            WidthRequest="400">
 
-                <!-- Faixa da marca -->
-                <Grid Padding="28,24" ColumnDefinitions="Auto,*" ColumnSpacing="14">
-                    <Grid.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Offset="0" Color="#F77F00" />
-                            <GradientStop Offset="1" Color="#CC6600" />
-                        </LinearGradientBrush>
-                    </Grid.Background>
-                    <Border
-                        BackgroundColor="#33FFFFFF"
-                        HeightRequest="48"
-                        StrokeThickness="0"
-                        VerticalOptions="Center"
-                        WidthRequest="48">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
-                        <Label
-                            FontFamily="OpenSansSemibold"
-                            FontSize="24"
-                            HorizontalOptions="Center"
-                            Text="M"
-                            TextColor="White"
-                            VerticalOptions="Center" />
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                        <Label
-                            FontFamily="OpenSansSemibold"
-                            FontSize="20"
-                            Text="Menuz · Equipe"
-                            TextColor="White" />
-                        <Label FontSize="13" Text="Cozinha e gerência" TextColor="#FFF4E6" />
-                    </VerticalStackLayout>
-                </Grid>
+            <VerticalStackLayout Spacing="14">
+                <Border HorizontalOptions="Start" Style="{StaticResource MzLogo}">
+                    <Label Style="{StaticResource MzLogoLabel}" Text="{Binding Theme.Initial}" />
+                </Border>
+                <VerticalStackLayout Spacing="4">
+                    <Label Style="{StaticResource MzPageTitle}" Text="Acesso da equipe" />
+                    <Label Style="{StaticResource MzMuted}" Text="Entre com o usuário fornecido pela gerência." />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
 
-                <VerticalStackLayout Padding="28,24,28,28" Spacing="18">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Style="{StaticResource MzTitle}" Text="Entrar" />
-                        <Label Style="{StaticResource MzMuted}" Text="Use o usuário fornecido pela gerência. Clientes não precisam entrar." />
-                    </VerticalStackLayout>
-
+            <Border Padding="24" Style="{StaticResource MzCard}">
+                <VerticalStackLayout Spacing="16">
                     <VerticalStackLayout Spacing="6">
                         <Label Style="{StaticResource MzFieldLabel}" Text="Usuário" />
                         <Border Style="{StaticResource MzInput}">
-                            <Entry
-                                x:Name="UsernameEntry"
-                                IsSpellCheckEnabled="False"
-                                IsTextPredictionEnabled="False"
-                                Keyboard="Plain"
-                                Placeholder="ex.: gerente"
-                                ReturnType="Next"
-                                Text="{Binding Username}" />
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                <controls:MzIcon Color="{DynamicResource MzTextSubtle}" Name="user" Size="16" />
+                                <Entry
+                                    x:Name="UsernameEntry"
+                                    Grid.Column="1"
+                                    IsSpellCheckEnabled="False"
+                                    IsTextPredictionEnabled="False"
+                                    Keyboard="Plain"
+                                    Placeholder="Nome de usuário"
+                                    ReturnType="Next"
+                                    Text="{Binding Username}" />
+                            </Grid>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="6">
                         <Label Style="{StaticResource MzFieldLabel}" Text="Senha" />
                         <Border Style="{StaticResource MzInput}">
-                            <Entry
-                                IsPassword="True"
-                                Placeholder="Sua senha"
-                                ReturnCommand="{Binding LoginCommand}"
-                                ReturnType="Go"
-                                Text="{Binding Password}" />
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                <controls:MzIcon Color="{DynamicResource MzTextSubtle}" Name="lock" Size="16" />
+                                <Entry
+                                    Grid.Column="1"
+                                    IsPassword="True"
+                                    Placeholder="Senha"
+                                    ReturnCommand="{Binding LoginCommand}"
+                                    ReturnType="Go"
+                                    Text="{Binding Password}" />
+                            </Grid>
                         </Border>
                     </VerticalStackLayout>
 
-                    <Border
-                        Padding="12,10"
-                        BackgroundColor="{StaticResource MzDestructiveTint}"
-                        IsVisible="{Binding HasError}"
-                        StrokeThickness="0">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
-                        </Border.StrokeShape>
-                        <Label Style="{StaticResource MzError}" Text="{Binding ErrorMessage}" />
-                    </Border>
+                    <controls:AlertBanner Kind="Error" Text="{Binding ErrorMessage}" />
 
-                    <Grid>
-                        <Button
-                            Command="{Binding LoginCommand}"
-                            HeightRequest="50"
-                            Style="{StaticResource MzPrimaryButton}"
-                            Text="Entrar" />
-                        <ActivityIndicator
-                            HeightRequest="22"
-                            HorizontalOptions="End"
-                            IsRunning="{Binding IsBusy}"
-                            IsVisible="{Binding IsBusy}"
-                            Margin="0,0,16,0"
-                            WidthRequest="22"
-                            Color="White" />
-                    </Grid>
-
-                    <Button
-                        Command="{Binding CancelCommand}"
-                        Style="{StaticResource MzGhostButton}"
-                        Text="← Voltar ao cardápio" />
+                    <controls:MzButton
+                        Command="{Binding LoginCommand}"
+                        HorizontalOptions="Fill"
+                        Icon="log-in"
+                        IsLoading="{Binding IsBusy}"
+                        Size="48"
+                        Text="Entrar"
+                        Variant="Primary" />
                 </VerticalStackLayout>
-            </VerticalStackLayout>
-        </Border>
+            </Border>
+
+            <controls:MzButton
+                Command="{Binding CancelCommand}"
+                HorizontalOptions="Center"
+                Icon="arrow-left"
+                Text="Voltar ao cardápio"
+                Variant="Ghost" />
+        </VerticalStackLayout>
     </Grid>
 </ContentPage>

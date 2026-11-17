@@ -33,6 +33,7 @@ namespace ProjetoIntegradorMenuz
             builder.Services.AddSingleton<TableService>();
             builder.Services.AddSingleton<AuthService>();
             builder.Services.AddSingleton<AdminApiService>();
+            builder.Services.AddSingleton<ThemeService>();
 
             // ViewModels
             builder.Services.AddSingleton<MenuViewModel>();

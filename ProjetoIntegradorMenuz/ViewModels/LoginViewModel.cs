@@ -11,7 +11,14 @@ namespace ProjetoIntegradorMenuz.ViewModels
     {
         private readonly AuthService _auth;
 
-        public LoginViewModel(AuthService auth) => _auth = auth;
+        public LoginViewModel(AuthService auth, ThemeService theme)
+        {
+            _auth = auth;
+            Theme = theme;
+        }
+
+        /// <summary>Inicial do logotipo do estabelecimento.</summary>
+        public ThemeService Theme { get; }
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(LoginCommand))]

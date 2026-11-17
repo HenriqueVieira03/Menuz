@@ -38,13 +38,8 @@ namespace ProjetoIntegradorMenuz.Controls
                 if (parent is Border b && IsInputFrame(b)) { border = b; break; }
             if (border is null) return;
 
-            var dark = Application.Current?.RequestedTheme == AppTheme.Dark;
-            var key = focused
-                ? (dark ? "MzPrimaryDark" : "MzPrimaryLight")
-                : (dark ? "MzBorderDark" : "MzInputBorderLight");
-
-            if (Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color)
-                border.Stroke = color;
+            // DynamicResource: a moldura continua acompanhando a troca de cor/tema feita pela gerência.
+            border.SetDynamicResource(Border.StrokeProperty, focused ? "MzPrimary" : "MzBorderStrong");
             border.StrokeThickness = focused ? 2 : 1;
         }
 

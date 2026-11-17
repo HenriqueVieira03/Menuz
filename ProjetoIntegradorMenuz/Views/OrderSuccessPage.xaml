@@ -3,67 +3,60 @@
     x:Class="ProjetoIntegradorMenuz.Views.OrderSuccessPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Pedido confirmado"
+    xmlns:controls="clr-namespace:ProjetoIntegradorMenuz.Controls"
+    Title="Pedido enviado"
     Shell.NavBarIsVisible="False">
 
-    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
 
-    <Grid Padding="20">
+    <Grid Padding="24">
         <Border
-            Padding="40,44"
+            Padding="40"
             HorizontalOptions="Center"
-            MaximumWidthRequest="480"
-            Style="{StaticResource MzCardRaised}"
+            MaximumWidthRequest="460"
+            Style="{StaticResource MzCard}"
             VerticalOptions="Center">
-            <VerticalStackLayout HorizontalOptions="Center" Spacing="18">
-
+            <VerticalStackLayout Spacing="20">
                 <Border
-                    BackgroundColor="{StaticResource MzSuccessTint}"
-                    HeightRequest="96"
+                    BackgroundColor="{DynamicResource MzSuccessSoft}"
+                    HeightRequest="64"
                     HorizontalOptions="Center"
                     StrokeThickness="0"
-                    WidthRequest="96">
+                    WidthRequest="64">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="48" />
+                        <RoundRectangle CornerRadius="32" />
                     </Border.StrokeShape>
-                    <Label
-                        FontFamily="OpenSansSemibold"
-                        FontSize="44"
-                        HorizontalOptions="Center"
-                        Text="✓"
-                        TextColor="{StaticResource MzSuccessText}"
-                        VerticalOptions="Center" />
+                    <controls:MzIcon
+                        Color="{DynamicResource MzSuccessText}"
+                        Name="check"
+                        Size="30" />
                 </Border>
 
-                <VerticalStackLayout Spacing="8">
+                <VerticalStackLayout Spacing="6">
                     <Label
-                        HorizontalOptions="Center"
                         HorizontalTextAlignment="Center"
-                        Style="{StaticResource MzDisplay}"
-                        Text="Pedido enviado!" />
+                        Style="{StaticResource MzTitle}"
+                        Text="Pedido enviado" />
                     <Label
-                        HorizontalOptions="Center"
                         HorizontalTextAlignment="Center"
-                        Style="{StaticResource MzBody}"
-                        Text="A cozinha já recebeu seu pedido e logo ele chega à sua mesa."
-                        TextColor="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
+                        Style="{StaticResource MzMuted}"
+                        Text="A cozinha já recebeu o seu pedido. Você pode acompanhar o preparo em Meus pedidos." />
                 </VerticalStackLayout>
 
-                <Button
-                    x:Name="Acompanhar"
-                    Clicked="Acompanhar_Clicked"
-                    HeightRequest="52"
-                    Style="{StaticResource MzPrimaryButton}"
-                    Text="Acompanhar meu pedido" />
-                <Button
-                    x:Name="VoltarMenu"
-                    Clicked="VoltarMenu_Clicked"
-                    HeightRequest="52"
-                    Style="{StaticResource MzOutlineButton}"
-                    Text="Voltar ao cardápio" />
+                <VerticalStackLayout Spacing="10">
+                    <Button
+                        x:Name="Acompanhar"
+                        Clicked="Acompanhar_Clicked"
+                        Style="{StaticResource MzPrimaryButton}"
+                        Text="Acompanhar pedido" />
+                    <Button
+                        x:Name="VoltarMenu"
+                        Clicked="VoltarMenu_Clicked"
+                        Style="{StaticResource MzOutlineButton}"
+                        Text="Voltar ao cardápio" />
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </Border>
     </Grid>

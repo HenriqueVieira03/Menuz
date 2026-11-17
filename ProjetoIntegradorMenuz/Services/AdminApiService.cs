@@ -41,6 +41,11 @@ namespace ProjetoIntegradorMenuz.Services
 
         public Task<List<OpenBill>> GetOpenBillsAsync() => GetAsync<List<OpenBill>>("api/admin/bills/open");
 
+        // ---- Aparência ----
+
+        public Task<Appearance> SaveAppearanceAsync(Appearance appearance) =>
+            SendAsync<Appearance>(HttpMethod.Put, "api/settings/appearance", appearance);
+
         public Task<BillDto> CloseBillAsync(int billId) =>
             SendAsync<BillDto>(HttpMethod.Post, $"api/admin/bills/{billId}/close", null);
 

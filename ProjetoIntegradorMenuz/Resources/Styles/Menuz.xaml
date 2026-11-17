@@ -6,201 +6,172 @@
     xmlns:controls="clr-namespace:ProjetoIntegradorMenuz.Controls">
 
     <!-- =====================================================================
-         IDENTIDADE VISUAL MENUZ
-         Paleta herdada do Fournos (globals.css). Para ajustar cores, raios
-         ou tipografia do app inteiro, edite somente este arquivo.
+         SISTEMA VISUAL MENUZ
+
+         CORES: tokens semânticos (MzBackground, MzText, MzPrimary...). Os valores
+         abaixo são o padrão (tema claro, laranja Menuz); o ThemeService os troca em
+         tempo de execução conforme a aparência escolhida pela gerência. Por isso as
+         telas usam {DynamicResource Mz...}, nunca StaticResource, para cores.
+
+         MEDIDAS: espaçamento em múltiplos de 4; raio 8 em controles, 12 em cartões.
+         TIPOGRAFIA: Open Sans. 24 título de página · 18 seção · 15 destaque · 14 corpo · 12 legenda.
          ===================================================================== -->
 
-    <!-- ============================ CORES ============================ -->
+    <!-- ============================ CORES (padrão) ============================ -->
+    <Color x:Key="MzBackground">#F4F4EB</Color>
+    <Color x:Key="MzSurface">#FFFFFF</Color>
+    <Color x:Key="MzSurfaceAlt">#EFE7DC</Color>
+    <Color x:Key="MzSurfaceSunken">#F8F5EE</Color>
+    <Color x:Key="MzBorder">#E6D9CC</Color>
+    <Color x:Key="MzBorderStrong">#D6C3B2</Color>
+    <Color x:Key="MzText">#532718</Color>
+    <Color x:Key="MzTextMuted">#6B4F43</Color>
+    <Color x:Key="MzTextSubtle">#A08B80</Color>
 
-    <!-- Claro -->
-    <Color x:Key="MzBackgroundLight">#F4F4EB</Color>
-    <Color x:Key="MzForegroundLight">#532718</Color>
-    <Color x:Key="MzCardLight">#FFFFFF</Color>
-    <Color x:Key="MzBorderLight">#E2D3C5</Color>
-    <Color x:Key="MzInputBorderLight">#D6C3B2</Color>
-    <Color x:Key="MzMutedLight">#EFE7DC</Color>
-    <Color x:Key="MzMutedForegroundLight">#6B4F43</Color>
-    <Color x:Key="MzPrimaryLight">#F77F00</Color>
-    <Color x:Key="MzPrimaryTintLight">#FFF4E6</Color>
+    <Color x:Key="MzSidebar">#3B1C11</Color>
+    <Color x:Key="MzSidebarText">#F4EDE6</Color>
+    <Color x:Key="MzSidebarMuted">#C9B3A6</Color>
+    <Color x:Key="MzSidebarActive">#26FFFFFF</Color>
 
-    <!-- Escuro -->
-    <Color x:Key="MzBackgroundDark">#1A0E0A</Color>
-    <Color x:Key="MzForegroundDark">#F4F4EB</Color>
-    <Color x:Key="MzCardDark">#2A1A14</Color>
-    <Color x:Key="MzBorderDark">#3A261F</Color>
-    <Color x:Key="MzMutedDark">#3A261F</Color>
-    <Color x:Key="MzMutedForegroundDark">#CBB7AA</Color>
-    <Color x:Key="MzPrimaryDark">#FF8C1A</Color>
-    <Color x:Key="MzPrimaryTintDark">#3A2212</Color>
-
-    <!-- Comuns -->
+    <Color x:Key="MzPrimary">#F77F00</Color>
+    <Color x:Key="MzPrimaryStrong">#C25F00</Color>
+    <Color x:Key="MzPrimarySoft">#FFF1E0</Color>
     <Color x:Key="MzOnPrimary">#FFFFFF</Color>
-    <Color x:Key="MzPrimaryDeep">#CC6600</Color>
-    <Color x:Key="MzSecondary">#A5530C</Color>
-    <Color x:Key="MzSuccess">#6BAF6B</Color>
-    <Color x:Key="MzSuccessTint">#EAF4EA</Color>
-    <Color x:Key="MzSuccessText">#3E7B3E</Color>
-    <Color x:Key="MzWarningTint">#FDF0D5</Color>
-    <Color x:Key="MzWarningText">#9A5B00</Color>
-    <Color x:Key="MzDestructiveLight">#D64527</Color>
-    <Color x:Key="MzDestructiveDark">#FF8A65</Color>
-    <Color x:Key="MzDestructiveTint">#FBE9E5</Color>
-    <Color x:Key="MzScrim">#99000000</Color>
 
-    <!-- Sombra suave usada nos elementos flutuantes (barra do carrinho, popup, cartões de destaque) -->
+    <Color x:Key="MzSuccess">#4E9A4E</Color>
+    <Color x:Key="MzSuccessSoft">#E8F3E8</Color>
+    <Color x:Key="MzSuccessText">#2F6B2F</Color>
+    <Color x:Key="MzWarning">#E19A2B</Color>
+    <Color x:Key="MzWarningSoft">#FBEFD8</Color>
+    <Color x:Key="MzWarningText">#8A5300</Color>
+    <Color x:Key="MzDanger">#C93C20</Color>
+    <Color x:Key="MzDangerSoft">#FBE9E5</Color>
+    <Color x:Key="MzDangerText">#B3341B</Color>
+    <Color x:Key="MzDangerBorder">#F0C9C0</Color>
+
+    <Color x:Key="MzTransparent">Transparent</Color>
+    <Color x:Key="MzScrim">#8C1A0E0A</Color>
+
+    <!-- Sombra só para o que flutua (diálogos, barra do pedido) -->
     <Shadow
         x:Key="MzShadow"
-        Brush="#532718"
-        Opacity="0.10"
-        Radius="18"
-        Offset="0,6" />
+        Brush="#1A0E0A"
+        Opacity="0.16"
+        Radius="24"
+        Offset="0,8" />
 
-    <!-- ============================ PÁGINA ============================ -->
-    <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzBackgroundLight}, Dark={StaticResource MzBackgroundDark}}" />
+    <!-- ============================ IMPLÍCITOS ============================ -->
+
+    <Style TargetType="Page" ApplyToDerivedTypes="True">
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzBackground}" />
     </Style>
 
-    <!-- ========================= TIPOGRAFIA ========================== -->
-    <!-- Escala: Display 28 · Título 22 · Seção 18 · Nome 16 · Corpo 15 · Legenda 13 · Rótulo 12 -->
+    <Style TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
+    </Style>
 
-    <Style x:Key="MzDisplay" TargetType="Label">
+    <Style TargetType="CollectionView">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style TargetType="ActivityIndicator">
+        <Setter Property="Color" Value="{DynamicResource MzPrimary}" />
+    </Style>
+
+    <Style TargetType="CheckBox">
+        <Setter Property="Color" Value="{DynamicResource MzPrimary}" />
+    </Style>
+
+    <Style TargetType="Switch">
+        <Setter Property="OnColor" Value="{DynamicResource MzPrimary}" />
+        <Setter Property="ThumbColor" Value="#FFFFFF" />
+    </Style>
+
+    <Style TargetType="controls:MzIcon">
+        <Setter Property="Color" Value="{DynamicResource MzText}" />
+    </Style>
+
+    <!-- ============================ TIPOGRAFIA ============================ -->
+
+    <Style x:Key="MzPageTitle" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="28" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
     <Style x:Key="MzTitle" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="22" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
     <Style x:Key="MzSection" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="18" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+        <Setter Property="FontSize" Value="17" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
     <Style x:Key="MzName" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="15" />
         <Setter Property="LineBreakMode" Value="TailTruncation" />
         <Setter Property="MaxLines" Value="1" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
     <Style x:Key="MzBody" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansRegular" />
-        <Setter Property="FontSize" Value="15" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
+    </Style>
+    <Style x:Key="MzStrong" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
     <Style x:Key="MzMuted" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzTextMuted}" />
     </Style>
-    <!-- Rótulo de seção em caixa alta, discreto (ex.: "TAMANHO", "INDICADORES") -->
-    <Style x:Key="MzOverline" TargetType="Label">
-        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+    <Style x:Key="MzCaption" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="12" />
-        <Setter Property="CharacterSpacing" Value="1.2" />
-        <Setter Property="TextTransform" Value="Uppercase" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzTextMuted}" />
     </Style>
-    <!-- Rótulo de campo de formulário -->
+    <!-- Cabeçalho de tabela / rótulo de grupo -->
+    <Style x:Key="MzColumnHeader" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CharacterSpacing" Value="0.8" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+        <Setter Property="TextColor" Value="{DynamicResource MzTextSubtle}" />
+    </Style>
     <Style x:Key="MzFieldLabel" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
     <Style x:Key="MzPrice" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="18" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
-    <Style x:Key="MzChipLabel" TargetType="Label">
+    <Style x:Key="MzMetric" TargetType="Label">
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
     </Style>
     <Style x:Key="MzError" TargetType="Label">
-        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzDestructiveLight}, Dark={StaticResource MzDestructiveDark}}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzDangerText}" />
     </Style>
 
-    <!-- ===================== SUPERFÍCIES ===================== -->
+    <!-- ============================ SUPERFÍCIES ============================ -->
 
     <Style x:Key="MzCard" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource MzBorderLight}, Dark={StaticResource MzBorderDark}}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzSurface}" />
+        <Setter Property="Stroke" Value="{DynamicResource MzBorder}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape">
-            <Setter.Value>
-                <RoundRectangle CornerRadius="16" />
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- Cartão com sombra, para blocos de destaque (não usar em listas longas) -->
-    <Style x:Key="MzCardRaised" TargetType="Border" BasedOn="{StaticResource MzCard}">
-        <Setter Property="Shadow" Value="{StaticResource MzShadow}" />
-    </Style>
-
-    <!-- Chip / pílula selecionável (categorias, filtros, opções) -->
-    <Style x:Key="MzChip" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource MzBorderLight}, Dark={StaticResource MzBorderDark}}" />
-        <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape">
-            <Setter.Value>
-                <RoundRectangle CornerRadius="999" />
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- Selo de status (Novo, Em preparo, Pronto...) -->
-    <Style x:Key="MzBadge" TargetType="Border">
-        <Setter Property="Padding" Value="10,4" />
-        <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzMutedLight}, Dark={StaticResource MzMutedDark}}" />
-        <Setter Property="VerticalOptions" Value="Center" />
-        <Setter Property="HorizontalOptions" Value="Start" />
-        <Setter Property="StrokeShape">
-            <Setter.Value>
-                <RoundRectangle CornerRadius="999" />
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style x:Key="MzBadgeLabel" TargetType="Label">
-        <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
-    </Style>
-
-    <!-- Barra superior das telas -->
-    <Style x:Key="MzAppBar" TargetType="Grid">
-        <Setter Property="Padding" Value="24,12" />
-        <Setter Property="MinimumHeightRequest" Value="68" />
-        <Setter Property="ColumnSpacing" Value="12" />
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-    </Style>
-    <Style x:Key="MzDivider" TargetType="BoxView">
-        <Setter Property="HeightRequest" Value="1" />
-        <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource MzBorderLight}, Dark={StaticResource MzBorderDark}}" />
-    </Style>
-
-    <!-- Logotipo "M" -->
-    <Style x:Key="MzLogo" TargetType="Border">
-        <Setter Property="HeightRequest" Value="40" />
-        <Setter Property="WidthRequest" Value="40" />
-        <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="VerticalOptions" Value="Center" />
-        <Setter Property="Background">
-            <Setter.Value>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Offset="0" Color="#F77F00" />
-                    <GradientStop Offset="1" Color="#CC6600" />
-                </LinearGradientBrush>
-            </Setter.Value>
-        </Setter>
         <Setter Property="StrokeShape">
             <Setter.Value>
                 <RoundRectangle CornerRadius="12" />
@@ -208,77 +179,158 @@
         </Setter>
     </Style>
 
-    <!-- ===================== CAMPOS DE FORMULÁRIO ===================== -->
-    <!-- Uso: <Border Style="{StaticResource MzInput}"><Entry ... /></Border>
-         A moldura destaca em laranja quando o campo recebe foco (Controls/FocusRing.cs). -->
+    <Style x:Key="MzDialog" TargetType="Border" BasedOn="{StaticResource MzCard}">
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="Shadow" Value="{StaticResource MzShadow}" />
+    </Style>
 
-    <Style x:Key="MzInput" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource MzInputBorderLight}, Dark={StaticResource MzBorderDark}}" />
+    <!-- Aba / filtro selecionável (o estado selecionado é aplicado por DataTrigger nas telas) -->
+    <Style x:Key="MzChip" TargetType="Border">
+        <Setter Property="Padding" Value="14,7" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzSurface}" />
+        <Setter Property="Stroke" Value="{DynamicResource MzBorder}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="Padding" Value="12,0" />
-        <Setter Property="MinimumHeightRequest" Value="48" />
         <Setter Property="StrokeShape">
             <Setter.Value>
-                <RoundRectangle CornerRadius="10" />
+                <RoundRectangle CornerRadius="8" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="MzChipLabel" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{DynamicResource MzTextMuted}" />
+    </Style>
+
+    <!-- Selo de status -->
+    <Style x:Key="MzBadge" TargetType="Border">
+        <Setter Property="Padding" Value="8,3" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzSurfaceAlt}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="6" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="MzBadgeLabel" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{DynamicResource MzTextMuted}" />
+    </Style>
+
+    <!-- Barra superior -->
+    <Style x:Key="MzAppBar" TargetType="Grid">
+        <Setter Property="Padding" Value="24,0" />
+        <Setter Property="HeightRequest" Value="64" />
+        <Setter Property="ColumnSpacing" Value="12" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzSurface}" />
+    </Style>
+    <Style x:Key="MzDivider" TargetType="BoxView">
+        <Setter Property="HeightRequest" Value="1" />
+        <Setter Property="Color" Value="{DynamicResource MzBorder}" />
+    </Style>
+    <Style x:Key="MzVDivider" TargetType="BoxView">
+        <Setter Property="WidthRequest" Value="1" />
+        <Setter Property="Color" Value="{DynamicResource MzBorder}" />
+    </Style>
+
+    <!-- Marca: quadrado com a inicial do estabelecimento -->
+    <Style x:Key="MzLogo" TargetType="Border">
+        <Setter Property="HeightRequest" Value="36" />
+        <Setter Property="WidthRequest" Value="36" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzPrimary}" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="8" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="MzLogoLabel" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="TextColor" Value="{DynamicResource MzOnPrimary}" />
+    </Style>
+
+    <!-- Estado vazio: círculo suave com ícone -->
+    <Style x:Key="MzEmptyIcon" TargetType="Border">
+        <Setter Property="HeightRequest" Value="64" />
+        <Setter Property="WidthRequest" Value="64" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzSurfaceAlt}" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="32" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============================ FORMULÁRIOS ============================ -->
+    <!-- Uso: <Border Style="{StaticResource MzInput}"><Entry ... /></Border>
+         A moldura fica na cor de destaque quando o campo tem foco (Controls/FocusRing.cs). -->
+
+    <Style x:Key="MzInput" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzSurface}" />
+        <Setter Property="Stroke" Value="{DynamicResource MzBorderStrong}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="8" />
             </Setter.Value>
         </Setter>
     </Style>
 
     <Style TargetType="Entry">
         <Setter Property="FontFamily" Value="OpenSansRegular" />
-        <Setter Property="FontSize" Value="15" />
-        <Setter Property="MinimumHeightRequest" Value="46" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinimumHeightRequest" Value="42" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="VerticalOptions" Value="Center" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light=#A08B80, Dark=#8C776B}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
+        <Setter Property="PlaceholderColor" Value="{DynamicResource MzTextSubtle}" />
         <Setter Property="controls:FocusRing.IsEnabled" Value="True" />
     </Style>
 
     <Style TargetType="Editor">
         <Setter Property="FontFamily" Value="OpenSansRegular" />
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light=#A08B80, Dark=#8C776B}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
+        <Setter Property="PlaceholderColor" Value="{DynamicResource MzTextSubtle}" />
         <Setter Property="controls:FocusRing.IsEnabled" Value="True" />
     </Style>
 
     <Style TargetType="Picker">
         <Setter Property="FontFamily" Value="OpenSansRegular" />
-        <Setter Property="FontSize" Value="15" />
-        <Setter Property="MinimumHeightRequest" Value="46" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinimumHeightRequest" Value="42" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="VerticalOptions" Value="Center" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-        <Setter Property="TitleColor" Value="{AppThemeBinding Light=#A08B80, Dark=#8C776B}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
+        <Setter Property="TitleColor" Value="{DynamicResource MzTextSubtle}" />
         <Setter Property="controls:FocusRing.IsEnabled" Value="True" />
     </Style>
 
-    <Style TargetType="CheckBox">
-        <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
-    </Style>
+    <!-- ============================ BOTÕES (texto) ============================
+         Para botões com ícone use controls:MzButton. Estes são para ações só de texto
+         que precisam do evento Clicked (Finalizar pedido, Pagar...). -->
 
-    <Style TargetType="Switch">
-        <Setter Property="OnColor" Value="{AppThemeBinding Light=#FBC48A, Dark=#7A4A1E}" />
-        <Setter Property="ThumbColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
-    </Style>
-
-    <Style TargetType="ActivityIndicator">
-        <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
-    </Style>
-
-    <!-- ============================ BOTÕES ============================ -->
-
-    <!-- Ação principal da tela -->
     <Style x:Key="MzPrimaryButton" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
-        <Setter Property="TextColor" Value="{StaticResource MzOnPrimary}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzPrimary}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzOnPrimary}" />
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
         <Setter Property="FontSize" Value="15" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="HeightRequest" Value="46" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HeightRequest" Value="48" />
         <Setter Property="MinimumHeightRequest" Value="0" />
         <Setter Property="Padding" Value="20,0" />
         <Setter Property="BorderWidth" Value="0" />
@@ -288,7 +340,6 @@
                     <VisualState x:Name="Normal" />
                     <VisualState x:Name="Pressed">
                         <VisualState.Setters>
-                            <Setter Property="Scale" Value="0.97" />
                             <Setter Property="Opacity" Value="0.85" />
                         </VisualState.Setters>
                     </VisualState>
@@ -302,90 +353,19 @@
         </Setter>
     </Style>
 
-    <!-- Ação secundária: fundo claro alaranjado, texto laranja -->
-    <Style x:Key="MzSecondaryButton" TargetType="Button" BasedOn="{StaticResource MzPrimaryButton}">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryDeep}, Dark={StaticResource MzPrimaryDark}}" />
-    </Style>
-
-    <!-- Contorno neutro: ações de apoio (Atualizar, Editar, Cancelar) -->
     <Style x:Key="MzOutlineButton" TargetType="Button" BasedOn="{StaticResource MzPrimaryButton}">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource MzInputBorderLight}, Dark={StaticResource MzBorderDark}}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource MzSurface}" />
+        <Setter Property="TextColor" Value="{DynamicResource MzText}" />
+        <Setter Property="BorderColor" Value="{DynamicResource MzBorderStrong}" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="HeightRequest" Value="42" />
-        <Setter Property="Padding" Value="16,0" />
     </Style>
 
-    <!-- Destrutivo (cancelar pedido, excluir) -->
-    <Style x:Key="MzDangerButton" TargetType="Button" BasedOn="{StaticResource MzOutlineButton}">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzDestructiveLight}, Dark={StaticResource MzDestructiveDark}}" />
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light=#F0C2B8, Dark=#5A2A20}" />
-    </Style>
-
-    <!-- Texto sem fundo -->
-    <Style x:Key="MzGhostButton" TargetType="Button">
+    <Style x:Key="MzGhostButton" TargetType="Button" BasedOn="{StaticResource MzPrimaryButton}">
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
-        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="TextColor" Value="{DynamicResource MzTextMuted}" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="HeightRequest" Value="40" />
-        <Setter Property="MinimumHeightRequest" Value="0" />
         <Setter Property="Padding" Value="12,0" />
-        <Setter Property="BorderWidth" Value="0" />
-        <Setter Property="VisualStateManager.VisualStateGroups">
-            <VisualStateGroupList>
-                <VisualStateGroup x:Name="CommonStates">
-                    <VisualState x:Name="Normal" />
-                    <VisualState x:Name="Pressed">
-                        <VisualState.Setters>
-                            <Setter Property="Scale" Value="0.97" />
-                            <Setter Property="Opacity" Value="0.85" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Disabled">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity" Value="0.45" />
-                        </VisualState.Setters>
-                    </VisualState>
-                </VisualStateGroup>
-            </VisualStateGroupList>
-        </Setter>
-    </Style>
-
-    <!-- Botão quadrado de ícone (voltar, +, −, ✕) -->
-    <Style x:Key="MzQtyButton" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzMutedLight}, Dark={StaticResource MzMutedDark}}" />
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-        <Setter Property="FontFamily" Value="OpenSansSemibold" />
-        <Setter Property="FontSize" Value="18" />
-        <Setter Property="CornerRadius" Value="10" />
-        <Setter Property="HeightRequest" Value="40" />
-        <Setter Property="WidthRequest" Value="40" />
-        <Setter Property="MinimumHeightRequest" Value="0" />
-        <Setter Property="MinimumWidthRequest" Value="0" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="BorderWidth" Value="0" />
-        <Setter Property="VisualStateManager.VisualStateGroups">
-            <VisualStateGroupList>
-                <VisualStateGroup x:Name="CommonStates">
-                    <VisualState x:Name="Normal" />
-                    <VisualState x:Name="Pressed">
-                        <VisualState.Setters>
-                            <Setter Property="Scale" Value="0.97" />
-                            <Setter Property="Opacity" Value="0.85" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Disabled">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity" Value="0.45" />
-                        </VisualState.Setters>
-                    </VisualState>
-                </VisualStateGroup>
-            </VisualStateGroupList>
-        </Setter>
     </Style>
 </ResourceDictionary>

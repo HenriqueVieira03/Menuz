@@ -7,7 +7,42 @@ using ProjetoIntegradorMenuz.Views;
 
 namespace ProjetoIntegradorMenuz.ViewModels
 {
-    public enum ManagerTab { Overview, Orders, Tables, Users, Menu }
+    public enum ManagerTab { Overview, Orders, Tables, Users, Menu, Appearance }
+
+    /// <summary>Item da barra lateral de navegação do painel.</summary>
+    public partial class NavItemViewModel(ManagerTab tab, string label, string icon) : ObservableObject
+    {
+        public ManagerTab Tab { get; } = tab;
+        public string Key => Tab.ToString();
+        public string Label { get; } = label;
+        public string Icon { get; } = icon;
+
+        [ObservableProperty]
+        private bool isSelected;
+    }
+
+    /// <summary>Opção de cor de destaque na tela Aparência.</summary>
+    public partial class AccentOptionViewModel(AccentPreset preset) : ObservableObject
+    {
+        public AccentPreset Preset { get; } = preset;
+        public string Name => Preset.Name;
+        public Color Swatch => Preset.Primary;
+
+        [ObservableProperty]
+        private bool isSelected;
+    }
+
+    /// <summary>Opção de tema (claro/escuro) na tela Aparência.</summary>
+    public partial class ThemeModeOptionViewModel(AppThemeMode mode, string label, string description) : ObservableObject
+    {
+        public AppThemeMode Mode { get; } = mode;
+        public string Label { get; } = label;
+        public string Description { get; } = description;
+        public bool IsDark => Mode == AppThemeMode.Dark;
+
+        [ObservableProperty]
+        private bool isSelected;
+    }
 
     /// <summary>
     /// Painel da gerência (PDV): indicadores do dia, todos os pedidos do dia (com cancelamento)
@@ -24,18 +59,40 @@ namespace ProjetoIntegradorMenuz.ViewModels
         private bool _billsLoading;
         private CancellationTokenSource? _pollCts;
 
-        public ManagerViewModel(AdminApiService admin, AuthService auth, OrderHubClient hub, TableService table)
+        public ManagerViewModel(AdminApiService admin, AuthService auth, OrderHubClient hub, TableService table, ThemeService theme)
         {
             _admin = admin;
             _auth = auth;
             _hub = hub;
             Table = table;
+            Theme = theme;
+
+            NavItems = new[]
+            {
+                new NavItemViewModel(ManagerTab.Overview, "Visão geral", "grid") { IsSelected = true },
+                new NavItemViewModel(ManagerTab.Orders, "Pedidos", "list"),
+                new NavItemViewModel(ManagerTab.Tables, "Mesas", "hash"),
+                new NavItemViewModel(ManagerTab.Menu, "Cardápio", "book"),
+                new NavItemViewModel(ManagerTab.Users, "Usuários", "users"),
+                new NavItemViewModel(ManagerTab.Appearance, "Aparência", "droplet"),
+            };
+
+            AccentOptions = ThemeService.Presets.Select(p => new AccentOptionViewModel(p)).ToList();
+            ModeOptions = new[]
+            {
+                new ThemeModeOptionViewModel(AppThemeMode.Light, "Claro", "Fundo creme, ideal para o salão"),
+                new ThemeModeOptionViewModel(AppThemeMode.Dark, "Escuro", "Menos brilho, bom para a cozinha e ambientes escuros"),
+            };
         }
 
         public TableService Table { get; }
-        public string UserText => $"Olá, {_auth.DisplayName}";
+        public ThemeService Theme { get; }
+        public string UserText => _auth.DisplayName;
+        public string UserInitial => string.IsNullOrEmpty(_auth.DisplayName) ? "?" : _auth.DisplayName[..1].ToUpperInvariant();
 
-        // ---------------- Abas ----------------
+        // ---------------- Navegação ----------------
+
+        public IReadOnlyList<NavItemViewModel> NavItems { get; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsOverview))]
@@ -43,6 +100,11 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(IsTables))]
         [NotifyPropertyChangedFor(nameof(IsUsers))]
         [NotifyPropertyChangedFor(nameof(IsMenu))]
+        [NotifyPropertyChangedFor(nameof(IsAppearance))]
+        [NotifyPropertyChangedFor(nameof(IsNotAppearance))]
+        [NotifyPropertyChangedFor(nameof(ShowEditCategory))]
+        [NotifyPropertyChangedFor(nameof(PageTitle))]
+        [NotifyPropertyChangedFor(nameof(PageSubtitle))]
         private ManagerTab selectedTab = ManagerTab.Overview;
 
         public bool IsOverview => SelectedTab == ManagerTab.Overview;
@@ -50,12 +112,121 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public bool IsTables => SelectedTab == ManagerTab.Tables;
         public bool IsUsers => SelectedTab == ManagerTab.Users;
         public bool IsMenu => SelectedTab == ManagerTab.Menu;
+        public bool IsAppearance => SelectedTab == ManagerTab.Appearance;
+        public bool IsNotAppearance => !IsAppearance;
+        public bool ShowEditCategory => IsMenu && HasCategorySelected;
+
+        public string PageTitle => NavItems.First(n => n.Tab == SelectedTab).Label;
+
+        public string PageSubtitle => SelectedTab switch
+        {
+            ManagerTab.Overview => $"Indicadores de hoje, {DateTime.Now:dd 'de' MMMM}",
+            ManagerTab.Orders => Orders.Count == 1 ? "1 pedido hoje" : $"{Orders.Count} pedidos hoje",
+            ManagerTab.Tables => OpenBillsSummary,
+            ManagerTab.Menu => $"{_allProducts.Count} produtos em {Math.Max(0, CategoryFilters.Count - 1)} categorias",
+            ManagerTab.Users => UsersSummary,
+            _ => "Nome, cor de destaque e tema do aplicativo em todos os aparelhos"
+        };
 
         // Ao abrir a aba de mesas, já mostra as contas como estão agora.
-        partial void OnSelectedTabChanged(ManagerTab value)
+        partial void OnSelectedTabChanged(ManagerTab oldValue, ManagerTab newValue)
         {
-            if (value == ManagerTab.Tables) _ = ReloadOpenBillsAsync();
-            if (value == ManagerTab.Users) _ = ReloadUsersAsync();
+            foreach (var item in NavItems) item.IsSelected = item.Tab == newValue;
+
+            if (newValue == ManagerTab.Tables) _ = ReloadOpenBillsAsync();
+            if (newValue == ManagerTab.Users) _ = ReloadUsersAsync();
+            if (newValue == ManagerTab.Appearance) LoadAppearanceForm();
+
+            // Saiu da Aparência sem salvar: desfaz a pré-visualização.
+            if (oldValue == ManagerTab.Appearance && newValue != ManagerTab.Appearance) Theme.ApplyCached();
+        }
+
+        // ---------------- Aparência ----------------
+
+        public IReadOnlyList<AccentOptionViewModel> AccentOptions { get; }
+        public IReadOnlyList<ThemeModeOptionViewModel> ModeOptions { get; }
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(NamePreviewInitial))]
+        private string restaurantNameInput = string.Empty;
+
+        public string NamePreviewInitial => string.IsNullOrWhiteSpace(RestaurantNameInput) ? "?" : RestaurantNameInput.Trim()[..1].ToUpperInvariant();
+
+        [ObservableProperty]
+        private string? appearanceMessage;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveAppearanceCommand))]
+        private bool isSavingAppearance;
+
+        private string SelectedAccentKey => AccentOptions.FirstOrDefault(a => a.IsSelected)?.Preset.Key ?? ThemeService.Presets[0].Key;
+        private AppThemeMode SelectedMode => ModeOptions.FirstOrDefault(m => m.IsSelected)?.Mode ?? AppThemeMode.Light;
+
+        private void LoadAppearanceForm()
+        {
+            RestaurantNameInput = Theme.RestaurantName;
+            foreach (var a in AccentOptions) a.IsSelected = a.Preset.Key == Theme.Accent.Key;
+            foreach (var m in ModeOptions) m.IsSelected = m.Mode == Theme.Mode;
+            AppearanceMessage = null;
+        }
+
+        [RelayCommand]
+        private void SelectAccent(AccentOptionViewModel? option)
+        {
+            if (option is null) return;
+            foreach (var a in AccentOptions) a.IsSelected = ReferenceEquals(a, option);
+            Theme.Preview(SelectedAccentKey, SelectedMode); // mostra na hora, antes de salvar
+            AppearanceMessage = null;
+        }
+
+        [RelayCommand]
+        private void SelectMode(ThemeModeOptionViewModel? option)
+        {
+            if (option is null) return;
+            foreach (var m in ModeOptions) m.IsSelected = ReferenceEquals(m, option);
+            Theme.Preview(SelectedAccentKey, SelectedMode);
+            AppearanceMessage = null;
+        }
+
+        [RelayCommand]
+        private void ResetAppearance()
+        {
+            RestaurantNameInput = ThemeService.DefaultName;
+            SelectAccent(AccentOptions[0]);
+            SelectMode(ModeOptions[0]);
+        }
+
+        private bool CanSaveAppearance() => !IsSavingAppearance;
+
+        [RelayCommand(CanExecute = nameof(CanSaveAppearance))]
+        private async Task SaveAppearanceAsync()
+        {
+            var name = RestaurantNameInput?.Trim() ?? string.Empty;
+            if (name.Length is 0 or > 40)
+            {
+                ErrorMessage = "Informe o nome do estabelecimento (até 40 caracteres).";
+                return;
+            }
+
+            IsSavingAppearance = true;
+            try
+            {
+                await RunAsync(async () =>
+                {
+                    var saved = await _admin.SaveAppearanceAsync(new Appearance
+                    {
+                        RestaurantName = name,
+                        AccentKey = SelectedAccentKey,
+                        ThemeMode = SelectedMode == AppThemeMode.Dark ? "Dark" : "Light"
+                    });
+                    Theme.Apply(saved);
+                    AppearanceMessage = "Aparência salva. Os outros aparelhos aplicam ao abrir o cardápio.";
+                }, showBusy: false);
+            }
+            finally
+            {
+                IsSavingAppearance = false;
+            }
         }
 
         [RelayCommand]
@@ -149,6 +320,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public async Task StartAsync()
         {
             OnPropertyChanged(nameof(UserText));
+            OnPropertyChanged(nameof(UserInitial));
 
             if (!_subscribed)
             {
@@ -188,6 +360,8 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         public async Task StopAsync()
         {
+            if (IsAppearance) Theme.ApplyCached(); // painel fechado com a pré-visualização aberta
+
             _pollCts?.Cancel();
             _pollCts?.Dispose();
             _pollCts = null;
@@ -222,6 +396,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
                 _allProducts = productsTask.Result.Select(p => new ManagerProductViewModel(p)).ToList();
                 BuildCategoryFilters(categoriesTask.Result);
+                OnPropertyChanged(nameof(PageSubtitle));
             });
         }
 
@@ -414,6 +589,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 var card = Orders.FirstOrDefault(o => o.Id == dto.Id);
                 if (card is null) Orders.Insert(0, new OrderCardViewModel(dto));
                 else card.Update(dto);
+                OnPropertyChanged(nameof(PageSubtitle));
 
                 await ReloadDashboardAsync();
                 if (IsTables) await ReloadOpenBillsAsync();
@@ -464,6 +640,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 OnPropertyChanged(nameof(HasUsers));
                 OnPropertyChanged(nameof(HasNoUsers));
                 OnPropertyChanged(nameof(UsersSummary));
+                OnPropertyChanged(nameof(PageSubtitle));
             }
             catch (Exception ex) when (ex is StaffAccessException or OrderRejectedException)
             {
@@ -519,6 +696,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
             OnPropertyChanged(nameof(HasOpenBills));
             OnPropertyChanged(nameof(HasNoOpenBills));
             OnPropertyChanged(nameof(OpenBillsSummary));
+            OnPropertyChanged(nameof(PageSubtitle));
         }
 
         private void ApplyDashboard(Dashboard d)
@@ -541,6 +719,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 CategoryFilters.Add(new CategoryFilterViewModel(c, c.ProductCount) { IsSelected = c.Id == _categoryFilter?.Id });
 
             OnPropertyChanged(nameof(HasCategorySelected));
+            OnPropertyChanged(nameof(ShowEditCategory));
             ApplyProductFilter();
         }
 
@@ -552,6 +731,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
             foreach (var p in _allProducts.Where(p => _categoryFilter is null || p.Product.CategoryId == _categoryFilter.Id))
                 Products.Add(p);
             OnPropertyChanged(nameof(HasCategorySelected));
+            OnPropertyChanged(nameof(ShowEditCategory));
         }
 
         /// <summary>Executa uma chamada à API mostrando erros de forma amigável.</summary>

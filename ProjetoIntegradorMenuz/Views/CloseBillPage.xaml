@@ -3,138 +3,129 @@
     x:Class="ProjetoIntegradorMenuz.Views.CloseBillPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:ProjetoIntegradorMenuz.Controls"
     xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
     x:DataType="vm:CloseBillViewModel"
     Title="Fechar conta"
     Shell.NavBarIsVisible="False">
 
-    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="0">
+    <Grid RowDefinitions="Auto,Auto,*">
 
-        <!-- Barra superior -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Style="{StaticResource MzAppBar}">
-            <Button
-                Command="{Binding GoBackCommand}"
-                Style="{StaticResource MzQtyButton}"
-                Text="←"
-                VerticalOptions="Center" />
-            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                <Label Style="{StaticResource MzTitle}" Text="Fechar conta" />
-                <Label Style="{StaticResource MzMuted}" Text="{Binding HeaderText}" />
+            <controls:MzButton Command="{Binding GoBackCommand}" Icon="arrow-left" Variant="Outline" />
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                <Label Style="{StaticResource MzSection}" Text="Fechar conta" />
+                <Label Style="{StaticResource MzCaption}" Text="{Binding HeaderText}" />
             </VerticalStackLayout>
         </Grid>
         <BoxView Grid.Row="1" Style="{StaticResource MzDivider}" />
 
-        <!-- Avisos: falha de conexão e mudança no total -->
-        <VerticalStackLayout Grid.Row="2" Margin="20,0" Spacing="8">
-            <Border
-                Margin="0,14,0,0"
-                Padding="14,10"
-                BackgroundColor="{StaticResource MzDestructiveTint}"
-                IsVisible="{Binding HasError}"
-                StrokeThickness="0">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="10" />
-                </Border.StrokeShape>
-                <Label Style="{StaticResource MzError}" Text="{Binding ErrorMessage}" />
-            </Border>
-            <Border
-                Margin="0,14,0,0"
-                Padding="14,10"
-                BackgroundColor="{StaticResource MzWarningTint}"
-                IsVisible="{Binding HasNotice}"
-                StrokeThickness="0">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="10" />
-                </Border.StrokeShape>
-                <Label
-                    FontFamily="OpenSansSemibold"
-                    FontSize="14"
-                    Text="{Binding NoticeText}"
-                    TextColor="{StaticResource MzWarningText}" />
-            </Border>
-        </VerticalStackLayout>
-
-        <Grid Grid.Row="3">
-            <!-- Resumo do que foi pedido -->
+        <Grid Grid.Row="2">
             <ScrollView IsVisible="{Binding HasBill}">
-                <VerticalStackLayout
-                    x:Name="ReceiptHost"
-                    Padding="0,16,0,16"
-                    BindableLayout.ItemsSource="{Binding Orders}"
-                    HorizontalOptions="Center"
-                    Spacing="14">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="vm:BillOrderSummaryViewModel">
-                            <Border Padding="18,14" Style="{StaticResource MzCard}">
-                                <VerticalStackLayout Spacing="12">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <VerticalStackLayout Spacing="2">
-                                            <Label Style="{StaticResource MzName}" Text="{Binding Title}" />
-                                            <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
-                                        </VerticalStackLayout>
-                                        <Label
-                                            Grid.Column="1"
-                                            Style="{StaticResource MzPrice}"
-                                            Text="{Binding Total, StringFormat='{0:C2}'}"
-                                            VerticalOptions="Center" />
-                                    </Grid>
+                <VerticalStackLayout Padding="24" HorizontalOptions="Center" Spacing="16">
+                    <controls:AlertBanner Kind="Error" Text="{Binding ErrorMessage}" />
+                    <controls:AlertBanner Kind="Warning" Text="{Binding NoticeText}" />
 
-                                    <BoxView Style="{StaticResource MzDivider}" />
+                    <!-- Recibo -->
+                    <Border
+                        x:Name="ReceiptHost"
+                        Padding="0"
+                        Style="{StaticResource MzCard}">
+                        <VerticalStackLayout>
+                            <Grid Padding="20,16" ColumnDefinitions="*,Auto">
+                                <Label Style="{StaticResource MzSection}" Text="Resumo da conta" />
+                                <Label
+                                    Grid.Column="1"
+                                    Style="{StaticResource MzCaption}"
+                                    Text="{Binding HeaderText}"
+                                    VerticalOptions="Center" />
+                            </Grid>
 
-                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="10">
-                                        <BindableLayout.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:OrderLineViewModel">
-                                                <VerticalStackLayout Spacing="2">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Orders}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:BillOrderSummaryViewModel">
+                                        <VerticalStackLayout>
+                                            <BoxView Style="{StaticResource MzDivider}" />
+                                            <VerticalStackLayout Padding="20,14" Spacing="10">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <VerticalStackLayout Spacing="2">
+                                                        <Label Style="{StaticResource MzStrong}" Text="{Binding Title}" />
+                                                        <Label Style="{StaticResource MzCaption}" Text="{Binding Subtitle}" />
+                                                    </VerticalStackLayout>
                                                     <Label
-                                                        FontFamily="OpenSansSemibold"
-                                                        FontSize="15"
-                                                        LineBreakMode="WordWrap"
-                                                        Text="{Binding Text}" />
-                                                    <Label
-                                                        IsVisible="{Binding HasDetails}"
-                                                        LineBreakMode="WordWrap"
-                                                        Style="{StaticResource MzMuted}"
-                                                        Text="{Binding Details}" />
+                                                        Grid.Column="1"
+                                                        Style="{StaticResource MzStrong}"
+                                                        Text="{Binding Total, StringFormat='{0:C2}'}" />
+                                                </Grid>
+                                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="6">
+                                                    <BindableLayout.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:OrderLineViewModel">
+                                                            <VerticalStackLayout Spacing="1">
+                                                                <Label
+                                                                    LineBreakMode="WordWrap"
+                                                                    Style="{StaticResource MzBody}"
+                                                                    Text="{Binding Text}" />
+                                                                <Label
+                                                                    IsVisible="{Binding HasDetails}"
+                                                                    LineBreakMode="WordWrap"
+                                                                    Style="{StaticResource MzCaption}"
+                                                                    Text="{Binding Details}" />
+                                                            </VerticalStackLayout>
+                                                        </DataTemplate>
+                                                    </BindableLayout.ItemTemplate>
                                                 </VerticalStackLayout>
-                                            </DataTemplate>
-                                        </BindableLayout.ItemTemplate>
-                                    </VerticalStackLayout>
-                                </VerticalStackLayout>
-                            </Border>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
+                                            </VerticalStackLayout>
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                            <!-- Total e pagamento -->
+                            <BoxView Style="{StaticResource MzDivider}" />
+                            <VerticalStackLayout
+                                x:Name="PayHost"
+                                Padding="20"
+                                BackgroundColor="{DynamicResource MzSurfaceSunken}"
+                                Spacing="14">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Style="{StaticResource MzStrong}" Text="Total a pagar" VerticalOptions="Center" />
+                                    <Label
+                                        Grid.Column="1"
+                                        FontFamily="OpenSansSemibold"
+                                        FontSize="24"
+                                        Text="{Binding Total, StringFormat='{0:C2}'}" />
+                                </Grid>
+                                <controls:AlertBanner Kind="Info" Text="{Binding BlockedText}" />
+                                <Button
+                                    Clicked="Pagar_Clicked"
+                                    IsEnabled="{Binding CanPay}"
+                                    Style="{StaticResource MzPrimaryButton}"
+                                    Text="{Binding PayButtonText}" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </ScrollView>
 
-            <!-- Mesa sem conta aberta (ex.: já paga ou encerrada pela gerência) -->
+            <!-- Mesa sem conta aberta -->
             <VerticalStackLayout
                 HorizontalOptions="Center"
                 IsVisible="{Binding IsEmpty}"
+                MaximumWidthRequest="380"
                 Spacing="10"
                 VerticalOptions="Center">
-                <Border
-                    BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
-                    HeightRequest="88"
-                    HorizontalOptions="Center"
-                    StrokeThickness="0"
-                    WidthRequest="88">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="44" />
-                    </Border.StrokeShape>
-                    <Label FontSize="40" HorizontalOptions="Center" Text="🧾" VerticalOptions="Center" />
+                <Border Style="{StaticResource MzEmptyIcon}">
+                    <controls:MzIcon
+                        Color="{DynamicResource MzTextMuted}"
+                        Name="receipt"
+                        Size="24" />
                 </Border>
+                <Label HorizontalOptions="Center" Style="{StaticResource MzSection}" Text="Nenhuma conta aberta" />
                 <Label
-                    HorizontalOptions="Center"
-                    Style="{StaticResource MzSection}"
-                    Text="Nenhuma conta aberta" />
-                <Label
-                    Margin="24,0"
-                    HorizontalOptions="Center"
                     HorizontalTextAlignment="Center"
                     Style="{StaticResource MzMuted}"
                     Text="Esta mesa não tem conta para fechar no momento." />
@@ -147,41 +138,5 @@
                 IsVisible="{Binding IsBusy}"
                 VerticalOptions="Start" />
         </Grid>
-
-        <!-- Total e pagamento -->
-        <Border
-            x:Name="PayHost"
-            Grid.Row="4"
-            Margin="20,8,20,20"
-            Padding="20,16"
-            HorizontalOptions="Center"
-            IsVisible="{Binding HasBill}"
-            Style="{StaticResource MzCardRaised}">
-            <VerticalStackLayout Spacing="12">
-                <Grid ColumnDefinitions="*,Auto">
-                    <Label Style="{StaticResource MzTitle}" Text="Total a pagar" VerticalOptions="Center" />
-                    <Label
-                        Grid.Column="1"
-                        FontSize="26"
-                        Style="{StaticResource MzPrice}"
-                        Text="{Binding Total, StringFormat='{0:C2}'}"
-                        VerticalOptions="Center" />
-                </Grid>
-
-                <Label
-                    FontFamily="OpenSansSemibold"
-                    FontSize="14"
-                    IsVisible="{Binding HasPendingOrders}"
-                    Text="{Binding BlockedText}"
-                    TextColor="{StaticResource MzWarningText}" />
-
-                <Button
-                    Clicked="Pagar_Clicked"
-                    HeightRequest="52"
-                    IsEnabled="{Binding CanPay}"
-                    Style="{StaticResource MzPrimaryButton}"
-                    Text="{Binding PayButtonText}" />
-            </VerticalStackLayout>
-        </Border>
     </Grid>
 </ContentPage>

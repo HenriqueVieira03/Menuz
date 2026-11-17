@@ -56,7 +56,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [ObservableProperty]
         private bool isUpdating;
 
-        public string AvailabilityText => IsAvailable ? "✓ Disponível" : "Esgotado";
+        public string AvailabilityText => IsAvailable ? "Disponível" : "Esgotado";
 
         public void Update(ProductAdmin product)
         {

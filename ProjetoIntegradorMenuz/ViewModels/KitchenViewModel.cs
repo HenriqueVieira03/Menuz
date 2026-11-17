@@ -39,10 +39,10 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         public string ConnectionText => ConnectionState switch
         {
-            HubState.Connected => "● Ao vivo",
-            HubState.Connecting => "● Conectando…",
-            HubState.Reconnecting => "● Reconectando…",
-            _ => "● Offline"
+            HubState.Connected => "Ao vivo",
+            HubState.Connecting => "Conectando…",
+            HubState.Reconnecting => "Reconectando…",
+            _ => "Offline"
         };
 
         [ObservableProperty]

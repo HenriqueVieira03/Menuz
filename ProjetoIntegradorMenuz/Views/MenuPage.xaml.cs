@@ -38,13 +38,33 @@ namespace ProjetoIntegradorMenuz.Views
                 await _vm.LoadCommand.ExecuteAsync(null);
         }
 
-        // Colunas conforme a largura (tablet = 3+, celular = 1-2).
+        // Larguras a partir das quais aparecem a lista lateral de categorias e o painel do pedido.
+        private const double RailMinWidth = 760;
+        private const double PanelMinWidth = 1180;
+        private bool _wide;
+
+        /// <summary>
+        /// Layout conforme a largura: tablet na horizontal mostra categorias + produtos + pedido;
+        /// telas menores trocam o painel pela barra inferior e, no celular, a lista lateral por abas.
+        /// </summary>
         private void OnPageSizeChanged(object? sender, EventArgs e)
         {
             if (Width <= 0) return;
-            ProductsLayout.Span = Math.Max(1, (int)((Width - 40) / 300));
 
-            // O popup nunca passa da altura da tela: o conteúdo rola e o rodapé fica fixo.
+            var showRail = Width >= RailMinWidth;
+            _wide = Width >= PanelMinWidth;
+
+            CategoryRail.IsVisible = showRail;
+            CategoryTabs.IsVisible = !showRail;
+            OrderPanel.IsVisible = _wide;
+            HeaderCart.IsVisible = !_wide;
+            ListFooter.HeightRequest = _wide ? 24 : 104;
+            UpdateCartBar(animate: false);
+
+            var productsWidth = Width - (showRail ? 232 : 0) - (_wide ? 340 : 0) - 48;
+            ProductsLayout.Span = Math.Max(1, (int)(productsWidth / 240));
+
+            // O detalhe do produto nunca passa da altura da tela: o conteúdo rola e o rodapé fica fixo.
             if (Height > 0)
                 PopupCard.MaximumHeightRequest = Math.Max(320, Height - 40);
         }
@@ -62,42 +82,39 @@ namespace ProjetoIntegradorMenuz.Views
             if (e.PropertyName != nameof(MenuViewModel.Products)) return;
 
             ProductsList.Opacity = 0;
-            ProductsList.TranslationY = 16;
-            await Task.WhenAll(
-                ProductsList.FadeTo(1, 220, Easing.CubicOut),
-                ProductsList.TranslateTo(0, 0, 220, Easing.CubicOut));
+            await ProductsList.FadeToAsync(1, 160, Easing.CubicOut);
         }
 
-        // Barra do carrinho desliza para dentro/fora e dá um leve "pulso" a cada item.
-        private async void OnCartPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private void OnCartPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != nameof(CartService.TotalCount)) return;
+            if (e.PropertyName == nameof(CartService.TotalCount))
+                UpdateCartBar(animate: true);
+        }
 
-            var show = _vm.Cart.TotalCount > 0;
+        /// <summary>A barra inferior do pedido só existe quando o painel lateral não está na tela.</summary>
+        private async void UpdateCartBar(bool animate)
+        {
+            var show = !_wide && _vm.Cart.TotalCount > 0;
+            if (show == _barVisible) return;
+            _barVisible = show;
 
-            if (show == _barVisible)
+            if (!animate)
             {
-                if (show)
-                {
-                    await CartBar.ScaleTo(1.03, 80, Easing.CubicOut);
-                    await CartBar.ScaleTo(1, 120, Easing.CubicIn);
-                }
+                CartBar.TranslationY = 0;
+                CartBar.IsVisible = show;
                 return;
             }
 
-            _barVisible = show;
-
             if (show)
             {
-                CartBar.TranslationY = 120;
+                CartBar.TranslationY = 96;
                 CartBar.IsVisible = true;
-                await CartBar.TranslateTo(0, 0, 280, Easing.CubicOut);
+                await CartBar.TranslateToAsync(0, 0, 240, Easing.CubicOut);
             }
             else
             {
-                await CartBar.TranslateTo(0, 120, 200, Easing.CubicIn);
-                if (!_barVisible)
-                    CartBar.IsVisible = false;
+                await CartBar.TranslateToAsync(0, 96, 180, Easing.CubicIn);
+                if (!_barVisible) CartBar.IsVisible = false;
             }
         }
     }

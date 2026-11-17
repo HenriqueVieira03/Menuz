@@ -29,10 +29,11 @@ namespace ProjetoIntegradorMenuz.ViewModels
         private ImageSource? picture;
 
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(ButtonText))]
+        [NotifyPropertyChangedFor(nameof(AddIcon))]
         private bool isAdded;
 
-        public string ButtonText => IsAdded ? "Adicionado ✓" : "Adicionar";
+        /// <summary>Ícone do botão de adicionar: vira um "check" por um instante depois do toque.</summary>
+        public string AddIcon => IsAdded ? "check" : "plus";
 
         public void LoadImage()
         {

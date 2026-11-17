@@ -6,7 +6,7 @@ public partial class PaymentDonePage : ContentPage
     {
         InitializeComponent();
         AmountLabel.Text = totalPaid.ToString("C2");
-        TableLabel.Text = $"Mesa {tableNumber}";
+        TableLabel.Text = tableNumber.ToString();
     }
 
     private async void VoltarMenu_Clicked(object sender, EventArgs e)

@@ -4,765 +4,917 @@
     x:Name="PageRoot"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:ProjetoIntegradorMenuz.Controls"
     xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
     x:DataType="vm:ManagerViewModel"
-    Title="Gerência"
+    Title="Gestão"
     Shell.NavBarIsVisible="False">
 
-    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
 
     <ContentPage.Resources>
-        <!-- Cartão de indicador -->
         <Style x:Key="KpiCard" TargetType="Border" BasedOn="{StaticResource MzCard}">
             <Setter Property="Padding" Value="18,16" />
-            <Setter Property="Margin" Value="0,0,14,14" />
-            <Setter Property="WidthRequest" Value="220" />
+            <Setter Property="Margin" Value="0,0,16,16" />
+            <Setter Property="WidthRequest" Value="232" />
         </Style>
-        <Style x:Key="KpiValue" TargetType="Label">
-            <Setter Property="FontFamily" Value="OpenSansSemibold" />
-            <Setter Property="FontSize" Value="26" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-        </Style>
-
-        <!-- Aba do seletor (segmented control) -->
-        <Style x:Key="TabItem" TargetType="Border">
-            <Setter Property="Padding" Value="18,8" />
-            <Setter Property="StrokeThickness" Value="0" />
-            <Setter Property="BackgroundColor" Value="Transparent" />
-            <Setter Property="StrokeShape">
-                <Setter.Value>
-                    <RoundRectangle CornerRadius="10" />
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="TabLabel" TargetType="Label">
-            <Setter Property="FontFamily" Value="OpenSansSemibold" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
+        <Style x:Key="RowLabel" TargetType="Label" BasedOn="{StaticResource MzBody}">
+            <Setter Property="VerticalOptions" Value="Center" />
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="0">
+    <Grid ColumnDefinitions="240,*">
 
-        <!-- Barra superior -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,Auto" Style="{StaticResource MzAppBar}">
-            <Border Style="{StaticResource MzLogo}">
-                <Label
-                    FontFamily="OpenSansSemibold"
-                    FontSize="20"
-                    HorizontalOptions="Center"
-                    Text="M"
-                    TextColor="White"
-                    VerticalOptions="Center" />
-            </Border>
-            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                <Label Style="{StaticResource MzTitle}" Text="Gerência" />
-                <Label Style="{StaticResource MzMuted}" Text="{Binding UserText}" />
-            </VerticalStackLayout>
-            <Button
-                Grid.Column="2"
-                Command="{Binding RefreshCommand}"
-                Style="{StaticResource MzOutlineButton}"
-                Text="⟳  Atualizar"
-                VerticalOptions="Center" />
-            <Button
-                Grid.Column="3"
-                Command="{Binding OpenKitchenCommand}"
-                Style="{StaticResource MzOutlineButton}"
-                Text="🍳  Cozinha"
-                VerticalOptions="Center" />
-            <Button
-                Grid.Column="4"
-                Command="{Binding LogoutCommand}"
-                Style="{StaticResource MzSecondaryButton}"
-                Text="Sair"
-                VerticalOptions="Center" />
-        </Grid>
-        <BoxView Grid.Row="1" Style="{StaticResource MzDivider}" />
+        <!-- ======================= Barra lateral ======================= -->
+        <Grid BackgroundColor="{DynamicResource MzSidebar}" RowDefinitions="Auto,*,Auto">
 
-        <!-- Seletor de abas -->
-        <Border
-            Grid.Row="2"
-            Margin="20,16,20,4"
-            Padding="4"
-            BackgroundColor="{AppThemeBinding Light={StaticResource MzMutedLight}, Dark={StaticResource MzMutedDark}}"
-            HorizontalOptions="Start"
-            StrokeThickness="0">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="12" />
-            </Border.StrokeShape>
-            <HorizontalStackLayout Spacing="4">
-                <Border Style="{StaticResource TabItem}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Overview" />
-                    </Border.GestureRecognizers>
-                    <Border.Triggers>
-                        <DataTrigger Binding="{Binding IsOverview}" TargetType="Border" Value="True">
-                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-                        </DataTrigger>
-                    </Border.Triggers>
-                    <Label Style="{StaticResource TabLabel}" Text="Visão geral">
-                        <Label.Triggers>
-                            <DataTrigger Binding="{Binding IsOverview}" TargetType="Label" Value="True">
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
+            <!-- Marca -->
+            <Grid Padding="20,20,20,24" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <Border Style="{StaticResource MzLogo}">
+                    <Label Style="{StaticResource MzLogoLabel}" Text="{Binding Theme.Initial}" />
                 </Border>
-                <Border Style="{StaticResource TabItem}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Orders" />
-                    </Border.GestureRecognizers>
-                    <Border.Triggers>
-                        <DataTrigger Binding="{Binding IsOrders}" TargetType="Border" Value="True">
-                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-                        </DataTrigger>
-                    </Border.Triggers>
-                    <Label Style="{StaticResource TabLabel}" Text="Pedidos de hoje">
-                        <Label.Triggers>
-                            <DataTrigger Binding="{Binding IsOrders}" TargetType="Label" Value="True">
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                </Border>
-                <Border Style="{StaticResource TabItem}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Tables" />
-                    </Border.GestureRecognizers>
-                    <Border.Triggers>
-                        <DataTrigger Binding="{Binding IsTables}" TargetType="Border" Value="True">
-                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-                        </DataTrigger>
-                    </Border.Triggers>
-                    <Label Style="{StaticResource TabLabel}" Text="Mesas abertas">
-                        <Label.Triggers>
-                            <DataTrigger Binding="{Binding IsTables}" TargetType="Label" Value="True">
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                </Border>
-                <Border Style="{StaticResource TabItem}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Users" />
-                    </Border.GestureRecognizers>
-                    <Border.Triggers>
-                        <DataTrigger Binding="{Binding IsUsers}" TargetType="Border" Value="True">
-                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-                        </DataTrigger>
-                    </Border.Triggers>
-                    <Label Style="{StaticResource TabLabel}" Text="Usuários">
-                        <Label.Triggers>
-                            <DataTrigger Binding="{Binding IsUsers}" TargetType="Label" Value="True">
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                </Border>
-                <Border Style="{StaticResource TabItem}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Menu" />
-                    </Border.GestureRecognizers>
-                    <Border.Triggers>
-                        <DataTrigger Binding="{Binding IsMenu}" TargetType="Border" Value="True">
-                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
-                        </DataTrigger>
-                    </Border.Triggers>
-                    <Label Style="{StaticResource TabLabel}" Text="Cardápio">
-                        <Label.Triggers>
-                            <DataTrigger Binding="{Binding IsMenu}" TargetType="Label" Value="True">
-                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                </Border>
-            </HorizontalStackLayout>
-        </Border>
-
-        <!-- Erro -->
-        <Border
-            Grid.Row="3"
-            Margin="20,10,20,0"
-            Padding="14,10"
-            BackgroundColor="{StaticResource MzDestructiveTint}"
-            IsVisible="{Binding HasError}"
-            StrokeThickness="0">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="10" />
-            </Border.StrokeShape>
-            <Label Style="{StaticResource MzError}" Text="{Binding ErrorMessage}" />
-        </Border>
-
-        <Grid Grid.Row="4">
-
-            <!-- ================= Visão geral ================= -->
-            <ScrollView IsVisible="{Binding IsOverview}">
-                <VerticalStackLayout Padding="20,12,20,40" Spacing="22">
-
-                    <!-- Indicadores do dia -->
-                    <VerticalStackLayout Spacing="12">
-                        <Label Style="{StaticResource MzOverline}" Text="Hoje" />
-                        <FlexLayout Direction="Row" Wrap="Wrap">
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Faturamento" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding RevenueText}" TextColor="{StaticResource MzPrimaryDeep}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Pedidos" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding OrdersText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Ticket médio" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding TicketText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Em andamento" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding OpenText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Tempo até ficar pronto" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding ReadyText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Tempo até a entrega" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding DeliverText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Cancelados" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding CancelledText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Contas fechadas" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding BillsClosedText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                            <Border Style="{StaticResource KpiCard}">
-                                <VerticalStackLayout Spacing="4">
-                                    <Label Style="{StaticResource MzMuted}" Text="Ticket médio por conta" />
-                                    <Label Style="{StaticResource KpiValue}" Text="{Binding BillTicketText}" />
-                                </VerticalStackLayout>
-                            </Border>
-                        </FlexLayout>
-                    </VerticalStackLayout>
-
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
-                        <!-- Mais vendidos -->
-                        <Border Padding="20" Style="{StaticResource MzCard}">
-                            <VerticalStackLayout Spacing="12">
-                                <Label Style="{StaticResource MzSection}" Text="Mais vendidos hoje" />
-                                <Label
-                                    IsVisible="{Binding HasNoTopProducts}"
-                                    Style="{StaticResource MzMuted}"
-                                    Text="Nenhum pedido hoje ainda." />
-                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding TopProducts}" Spacing="10">
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:TopProductViewModel">
-                                            <Grid ColumnDefinitions="30,*,Auto,100" ColumnSpacing="10">
-                                                <Border
-                                                    BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
-                                                    HeightRequest="26"
-                                                    StrokeThickness="0"
-                                                    VerticalOptions="Center"
-                                                    WidthRequest="26">
-                                                    <Border.StrokeShape>
-                                                        <RoundRectangle CornerRadius="13" />
-                                                    </Border.StrokeShape>
-                                                    <Label
-                                                        FontFamily="OpenSansSemibold"
-                                                        FontSize="12"
-                                                        HorizontalOptions="Center"
-                                                        Text="{Binding Position}"
-                                                        TextColor="{StaticResource MzPrimaryDeep}"
-                                                        VerticalOptions="Center" />
-                                                </Border>
-                                                <Label Grid.Column="1" Style="{StaticResource MzBody}" Text="{Binding Name}" VerticalOptions="Center" />
-                                                <Label Grid.Column="2" Style="{StaticResource MzMuted}" Text="{Binding QuantityText}" VerticalOptions="Center" />
-                                                <Label
-                                                    Grid.Column="3"
-                                                    FontFamily="OpenSansSemibold"
-                                                    HorizontalTextAlignment="End"
-                                                    Text="{Binding RevenueText}"
-                                                    VerticalOptions="Center" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </VerticalStackLayout>
-                            </VerticalStackLayout>
-                        </Border>
-
-                        <!-- Tempo de resposta (REQ. 5) -->
-                        <Border Grid.Column="1" Padding="20" Style="{StaticResource MzCard}">
-                            <VerticalStackLayout Spacing="14">
-                                <VerticalStackLayout Spacing="2">
-                                    <Label Style="{StaticResource MzSection}" Text="Tempo de resposta" />
-                                    <Label Style="{StaticResource MzMuted}" Text="Do envio do pedido até aparecer na tela da cozinha." />
-                                </VerticalStackLayout>
-                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
-                                    <VerticalStackLayout Spacing="2">
-                                        <Label Style="{StaticResource MzMuted}" Text="Média" />
-                                        <Label Style="{StaticResource KpiValue}" Text="{Binding LatencyAvgText}" />
-                                    </VerticalStackLayout>
-                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                        <Label Style="{StaticResource MzMuted}" Text="95% até" />
-                                        <Label Style="{StaticResource KpiValue}" Text="{Binding LatencyP95Text}" />
-                                    </VerticalStackLayout>
-                                    <VerticalStackLayout Grid.Column="2" Spacing="2">
-                                        <Label Style="{StaticResource MzMuted}" Text="Abaixo de 2 s" />
-                                        <Label Style="{StaticResource KpiValue}" Text="{Binding LatencyUnderText}" TextColor="{StaticResource MzSuccessText}" />
-                                    </VerticalStackLayout>
-                                </Grid>
-                                <Label Style="{StaticResource MzMuted}" Text="{Binding LatencySamplesText}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </Grid>
-
-                    <!-- Mesa deste tablet -->
-                    <Border Padding="20,16" Style="{StaticResource MzCard}">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-                            <Label FontSize="26" Text="🪑" VerticalOptions="Center" />
-                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                <Label Style="{StaticResource MzName}" Text="{Binding Table.DisplayText, StringFormat='Este tablet: {0}'}" />
-                                <Label Style="{StaticResource MzMuted}" Text="Os pedidos feitos neste aparelho chegam à cozinha com esse número." />
-                            </VerticalStackLayout>
-                            <Button
-                                Grid.Column="2"
-                                Command="{Binding ChangeTableCommand}"
-                                Style="{StaticResource MzOutlineButton}"
-                                Text="Alterar mesa"
-                                VerticalOptions="Center" />
-                        </Grid>
-                    </Border>
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                    <Label
+                        FontFamily="OpenSansSemibold"
+                        FontSize="15"
+                        LineBreakMode="TailTruncation"
+                        Text="{Binding Theme.RestaurantName}"
+                        TextColor="{DynamicResource MzSidebarText}" />
+                    <Label FontSize="12" Text="Gestão" TextColor="{DynamicResource MzSidebarMuted}" />
                 </VerticalStackLayout>
-            </ScrollView>
+            </Grid>
 
-            <!-- ================= Usuários ================= -->
-            <CollectionView
-                x:Name="UsersList"
-                Margin="20,12,20,0"
-                IsVisible="{Binding IsUsers}"
-                ItemsSource="{Binding Users}"
-                SelectionMode="None">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.Header>
-                    <Grid Margin="0,0,0,12" ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                            <Label Style="{StaticResource MzSection}" Text="Usuários da equipe" />
-                            <Label Style="{StaticResource MzMuted}" Text="{Binding UsersSummary}" />
-                        </VerticalStackLayout>
-                        <Button
-                            Grid.Column="1"
-                            Command="{Binding NewUserCommand}"
-                            Style="{StaticResource MzPrimaryButton}"
-                            Text="+  Novo usuário"
-                            VerticalOptions="Center" />
-                    </Grid>
-                </CollectionView.Header>
-                <CollectionView.EmptyView>
-                    <Label
-                        Margin="0,48"
-                        HorizontalOptions="Center"
-                        Style="{StaticResource MzMuted}"
-                        Text="Nenhum usuário cadastrado." />
-                </CollectionView.EmptyView>
-                <CollectionView.Footer>
-                    <BoxView HeightRequest="40" Color="Transparent" />
-                </CollectionView.Footer>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ManagerUserViewModel">
-                        <Border Padding="18,14" Style="{StaticResource MzCard}">
-                            <Border.Triggers>
-                                <DataTrigger Binding="{Binding IsInactive}" TargetType="Border" Value="True">
-                                    <Setter Property="Opacity" Value="0.6" />
-                                </DataTrigger>
-                            </Border.Triggers>
-                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
-                                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                                    <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" />
-                                    <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
-                                </VerticalStackLayout>
-
-                                <VerticalStackLayout
-                                    Grid.Column="1"
-                                    Spacing="6"
-                                    VerticalOptions="Center">
-                                    <Border
-                                        BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
-                                        HorizontalOptions="End"
-                                        Style="{StaticResource MzBadge}">
-                                        <Label
-                                            Style="{StaticResource MzBadgeLabel}"
-                                            Text="{Binding RoleText}"
-                                            TextColor="{StaticResource MzPrimaryDeep}" />
-                                    </Border>
+            <!-- Navegação -->
+            <VerticalStackLayout Grid.Row="1" Padding="12,0" Spacing="2">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding NavItems}" Spacing="2">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:NavItemViewModel">
+                            <Border
+                                Padding="12,10"
+                                BackgroundColor="Transparent"
+                                StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.SelectTabCommand}"
+                                        CommandParameter="{Binding Key}" />
+                                </Border.GestureRecognizers>
+                                <Border.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelected}" TargetType="Border" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{DynamicResource MzSidebarActive}" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                    <controls:MzIcon Color="{DynamicResource MzSidebarMuted}" Name="{Binding Icon}" Size="18">
+                                        <controls:MzIcon.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected}" TargetType="controls:MzIcon" Value="True">
+                                                <Setter Property="Color" Value="{DynamicResource MzPrimary}" />
+                                            </DataTrigger>
+                                        </controls:MzIcon.Triggers>
+                                    </controls:MzIcon>
                                     <Label
-                                        FontSize="13"
-                                        HorizontalOptions="End"
-                                        Style="{StaticResource MzMuted}"
-                                        Text="{Binding StatusText}" />
-                                </VerticalStackLayout>
-
-                                <Button
-                                    Grid.Column="2"
-                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.EditUserCommand}"
-                                    CommandParameter="{Binding .}"
-                                    HeightRequest="44"
-                                    Style="{StaticResource MzOutlineButton}"
-                                    Text="Editar"
-                                    VerticalOptions="Center" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-            <!-- ================= Mesas abertas ================= -->
-            <CollectionView
-                x:Name="OpenBillsList"
-                Margin="20,12,20,0"
-                IsVisible="{Binding IsTables}"
-                ItemsSource="{Binding OpenBills}"
-                SelectionMode="None">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.Header>
-                    <VerticalStackLayout Margin="0,0,0,12" Spacing="2">
-                        <Label Style="{StaticResource MzSection}" Text="Contas abertas por mesa" />
-                        <Label Style="{StaticResource MzMuted}" Text="{Binding OpenBillsSummary}" />
-                    </VerticalStackLayout>
-                </CollectionView.Header>
-                <CollectionView.EmptyView>
-                    <Label
-                        Margin="0,48"
-                        HorizontalOptions="Center"
-                        Style="{StaticResource MzMuted}"
-                        Text="Nenhuma mesa com conta aberta." />
-                </CollectionView.EmptyView>
-                <CollectionView.Footer>
-                    <BoxView HeightRequest="40" Color="Transparent" />
-                </CollectionView.Footer>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:OpenBillViewModel">
-                        <Border Padding="18,14" Style="{StaticResource MzCard}">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                                <VerticalStackLayout Spacing="4" VerticalOptions="Center">
-                                    <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" />
-                                    <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
-                                    <Label
+                                        Grid.Column="1"
                                         FontFamily="OpenSansSemibold"
-                                        FontSize="13"
-                                        IsVisible="{Binding HasInProgress}"
-                                        Text="{Binding InProgressText}"
-                                        TextColor="{StaticResource MzWarningText}" />
-                                </VerticalStackLayout>
-                                <VerticalStackLayout
-                                    Grid.Column="1"
-                                    HorizontalOptions="End"
-                                    Spacing="8"
-                                    VerticalOptions="Center">
-                                    <Label
-                                        FontSize="22"
-                                        HorizontalOptions="End"
-                                        Style="{StaticResource MzPrice}"
-                                        Text="{Binding TotalText}" />
-                                    <Button
-                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.CloseOpenBillCommand}"
-                                        CommandParameter="{Binding .}"
-                                        HeightRequest="44"
-                                        IsEnabled="{Binding CanClose}"
-                                        Style="{StaticResource MzPrimaryButton}"
-                                        Text="Encerrar conta" />
-                                </VerticalStackLayout>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-            <!-- ================= Pedidos de hoje ================= -->
-            <CollectionView
-                Margin="20,12,20,0"
-                IsVisible="{Binding IsOrders}"
-                ItemsSource="{Binding Orders}"
-                SelectionMode="None">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.EmptyView>
-                    <Label
-                        Margin="0,48"
-                        HorizontalOptions="Center"
-                        Style="{StaticResource MzMuted}"
-                        Text="Nenhum pedido hoje ainda." />
-                </CollectionView.EmptyView>
-                <CollectionView.Footer>
-                    <BoxView HeightRequest="40" Color="Transparent" />
-                </CollectionView.Footer>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:OrderCardViewModel">
-                        <Border Padding="20,16" Style="{StaticResource MzCard}">
-                            <Border.Triggers>
-                                <DataTrigger Binding="{Binding IsCancelled}" TargetType="Border" Value="True">
-                                    <Setter Property="Opacity" Value="0.55" />
-                                </DataTrigger>
-                            </Border.Triggers>
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" RowDefinitions="Auto,Auto" RowSpacing="12">
-                                <HorizontalStackLayout Spacing="12">
-                                    <Label Style="{StaticResource MzSection}" Text="{Binding Title}" VerticalOptions="Center" />
-                                    <Border Style="{StaticResource MzBadge}">
-                                        <Border.Triggers>
-                                            <DataTrigger Binding="{Binding IsPending}" TargetType="Border" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding IsPreparing}" TargetType="Border" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{StaticResource MzWarningTint}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding IsReady}" TargetType="Border" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{StaticResource MzSuccessTint}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding IsCancelled}" TargetType="Border" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{StaticResource MzDestructiveTint}" />
-                                            </DataTrigger>
-                                        </Border.Triggers>
-                                        <Label Style="{StaticResource MzBadgeLabel}" Text="{Binding StatusText}">
-                                            <Label.Triggers>
-                                                <DataTrigger Binding="{Binding IsPending}" TargetType="Label" Value="True">
-                                                    <Setter Property="TextColor" Value="{StaticResource MzPrimaryDeep}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsPreparing}" TargetType="Label" Value="True">
-                                                    <Setter Property="TextColor" Value="{StaticResource MzWarningText}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsReady}" TargetType="Label" Value="True">
-                                                    <Setter Property="TextColor" Value="{StaticResource MzSuccessText}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsCancelled}" TargetType="Label" Value="True">
-                                                    <Setter Property="TextColor" Value="{StaticResource MzDestructiveLight}" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                    </Border>
-                                    <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                                <Label
-                                    Grid.Column="1"
-                                    Style="{StaticResource MzPrice}"
-                                    Text="{Binding Total, StringFormat='{0:C2}'}"
-                                    VerticalOptions="Center" />
-
-                                <VerticalStackLayout Grid.Row="1" BindableLayout.ItemsSource="{Binding Lines}" Spacing="6">
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:OrderLineViewModel">
-                                            <VerticalStackLayout>
-                                                <Label Style="{StaticResource MzBody}" Text="{Binding Text}" />
-                                                <Label
-                                                    IsVisible="{Binding HasDetails}"
-                                                    Style="{StaticResource MzMuted}"
-                                                    Text="{Binding Details}" />
-                                            </VerticalStackLayout>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </VerticalStackLayout>
-
-                                <HorizontalStackLayout
-                                    Grid.Row="1"
-                                    Grid.Column="1"
-                                    IsVisible="{Binding IsOpen}"
-                                    Spacing="10"
-                                    VerticalOptions="End">
-                                    <Button
-                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.CancelOrderCommand}"
-                                        CommandParameter="{Binding .}"
-                                        Style="{StaticResource MzDangerButton}"
-                                        Text="Cancelar" />
-                                    <Button
-                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.AdvanceOrderCommand}"
-                                        CommandParameter="{Binding .}"
-                                        HeightRequest="42"
-                                        Style="{StaticResource MzPrimaryButton}"
-                                        Text="{Binding ActionText}" />
-                                </HorizontalStackLayout>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-            <!-- ================= Cardápio ================= -->
-            <Grid IsVisible="{Binding IsMenu}" RowDefinitions="Auto,Auto,*">
-                <Grid Grid.Row="0" Padding="20,12,20,4" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
-                    <VerticalStackLayout VerticalOptions="Center">
-                        <Label Style="{StaticResource MzSection}" Text="Produtos" />
-                        <Label Style="{StaticResource MzMuted}" Text="Toque no selo para marcar como esgotado ou disponível." />
-                    </VerticalStackLayout>
-                    <Button
-                        Grid.Column="1"
-                        Command="{Binding EditCategoryCommand}"
-                        IsVisible="{Binding HasCategorySelected}"
-                        Style="{StaticResource MzOutlineButton}"
-                        Text="Editar categoria"
-                        VerticalOptions="Center" />
-                    <Button
-                        Grid.Column="2"
-                        Command="{Binding NewCategoryCommand}"
-                        Style="{StaticResource MzOutlineButton}"
-                        Text="+ Categoria"
-                        VerticalOptions="Center" />
-                    <Button
-                        Grid.Column="3"
-                        Command="{Binding NewProductCommand}"
-                        Style="{StaticResource MzPrimaryButton}"
-                        Text="+ Novo produto"
-                        VerticalOptions="Center" />
-                </Grid>
-
-                <ScrollView
-                    Grid.Row="1"
-                    HorizontalScrollBarVisibility="Never"
-                    Orientation="Horizontal">
-                    <HorizontalStackLayout
-                        Padding="20,10"
-                        BindableLayout.ItemsSource="{Binding CategoryFilters}"
-                        Spacing="8">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="vm:CategoryFilterViewModel">
-                                <Border Padding="16,8" Style="{StaticResource MzChip}">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer
-                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.FilterCategoryCommand}"
-                                            CommandParameter="{Binding .}" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Triggers>
-                                        <DataTrigger Binding="{Binding IsSelected}" TargetType="Border" Value="True">
-                                            <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
-                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzPrimaryLight}, Dark={StaticResource MzPrimaryDark}}" />
-                                        </DataTrigger>
-                                    </Border.Triggers>
-                                    <Label Style="{StaticResource MzChipLabel}" Text="{Binding Text}">
+                                        FontSize="14"
+                                        Text="{Binding Label}"
+                                        TextColor="{DynamicResource MzSidebarMuted}"
+                                        VerticalOptions="Center">
                                         <Label.Triggers>
                                             <DataTrigger Binding="{Binding IsSelected}" TargetType="Label" Value="True">
-                                                <Setter Property="TextColor" Value="{StaticResource MzOnPrimary}" />
+                                                <Setter Property="TextColor" Value="{DynamicResource MzSidebarText}" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <BoxView Margin="12,12" HeightRequest="1" Color="#26FFFFFF" />
+
+                <!-- Tela da cozinha -->
+                <Border Padding="12,10" BackgroundColor="Transparent" StrokeThickness="0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenKitchenCommand}" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <controls:MzIcon Color="{DynamicResource MzSidebarMuted}" Name="monitor" Size="18" />
+                        <Label
+                            Grid.Column="1"
+                            FontFamily="OpenSansSemibold"
+                            FontSize="14"
+                            Text="Tela da cozinha"
+                            TextColor="{DynamicResource MzSidebarMuted}"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Usuário -->
+            <Grid
+                Grid.Row="2"
+                Padding="20,16"
+                ColumnDefinitions="Auto,*,Auto"
+                ColumnSpacing="10">
+                <Border
+                    BackgroundColor="#26FFFFFF"
+                    HeightRequest="32"
+                    StrokeThickness="0"
+                    VerticalOptions="Center"
+                    WidthRequest="32">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+                    <Label
+                        FontFamily="OpenSansSemibold"
+                        FontSize="13"
+                        HorizontalOptions="Center"
+                        Text="{Binding UserInitial}"
+                        TextColor="{DynamicResource MzSidebarText}"
+                        VerticalOptions="Center" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                    <Label
+                        FontFamily="OpenSansSemibold"
+                        FontSize="13"
+                        LineBreakMode="TailTruncation"
+                        Text="{Binding UserText}"
+                        TextColor="{DynamicResource MzSidebarText}" />
+                    <Label FontSize="12" Text="Gerente" TextColor="{DynamicResource MzSidebarMuted}" />
+                </VerticalStackLayout>
+                <Border
+                    Grid.Column="2"
+                    Padding="8"
+                    BackgroundColor="Transparent"
+                    StrokeThickness="0"
+                    VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding LogoutCommand}" />
+                    </Border.GestureRecognizers>
+                    <controls:MzIcon Color="{DynamicResource MzSidebarMuted}" Name="log-out" Size="18" />
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ======================= Conteúdo ======================= -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+
+            <!-- Cabeçalho da seção -->
+            <Grid Padding="32,24,32,16" ColumnDefinitions="*,Auto">
+                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                    <Label Style="{StaticResource MzPageTitle}" Text="{Binding PageTitle}" />
+                    <Label Style="{StaticResource MzMuted}" Text="{Binding PageSubtitle}" />
+                </VerticalStackLayout>
+
+                <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                    <controls:MzButton
+                        Command="{Binding RefreshCommand}"
+                        Icon="refresh"
+                        IsVisible="{Binding IsNotAppearance}"
+                        Text="Atualizar"
+                        Variant="Outline" />
+
+                    <!-- Cardápio -->
+                    <controls:MzButton
+                        Command="{Binding EditCategoryCommand}"
+                        Icon="edit"
+                        IsVisible="{Binding ShowEditCategory}"
+                        Text="Editar categoria"
+                        Variant="Outline" />
+                    <controls:MzButton
+                        Command="{Binding NewCategoryCommand}"
+                        Icon="tag"
+                        IsVisible="{Binding IsMenu}"
+                        Text="Nova categoria"
+                        Variant="Outline" />
+                    <controls:MzButton
+                        Command="{Binding NewProductCommand}"
+                        Icon="plus"
+                        IsVisible="{Binding IsMenu}"
+                        Text="Novo produto"
+                        Variant="Primary" />
+
+                    <!-- Usuários -->
+                    <controls:MzButton
+                        Command="{Binding NewUserCommand}"
+                        Icon="plus"
+                        IsVisible="{Binding IsUsers}"
+                        Text="Novo usuário"
+                        Variant="Primary" />
+
+                    <!-- Aparência -->
+                    <controls:MzButton
+                        Command="{Binding ResetAppearanceCommand}"
+                        Icon="refresh"
+                        IsVisible="{Binding IsAppearance}"
+                        Text="Restaurar padrão"
+                        Variant="Outline" />
+                    <controls:MzButton
+                        Command="{Binding SaveAppearanceCommand}"
+                        Icon="check"
+                        IsLoading="{Binding IsSavingAppearance}"
+                        IsVisible="{Binding IsAppearance}"
+                        Text="Salvar alterações"
+                        Variant="Primary" />
+                </HorizontalStackLayout>
+            </Grid>
+
+            <controls:AlertBanner
+                Grid.Row="1"
+                Margin="32,0,32,12"
+                Kind="Error"
+                Text="{Binding ErrorMessage}" />
+
+            <Grid Grid.Row="2">
+
+                <!-- ================= Visão geral ================= -->
+                <ScrollView IsVisible="{Binding IsOverview}">
+                    <VerticalStackLayout Padding="32,4,32,32" Spacing="16">
+                        <FlexLayout Direction="Row" Wrap="Wrap">
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Faturamento" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding RevenueText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Pedidos" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding OrdersText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Ticket médio por pedido" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding TicketText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Em andamento" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding OpenText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Contas fechadas" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding BillsClosedText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Ticket médio por conta" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding BillTicketText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Tempo até ficar pronto" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding ReadyText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Style="{StaticResource KpiCard}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Style="{StaticResource MzMuted}" Text="Tempo até a entrega" />
+                                    <Label Style="{StaticResource MzMetric}" Text="{Binding DeliverText}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </FlexLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                            <!-- Mais vendidos -->
+                            <Border Padding="0" Style="{StaticResource MzCard}" VerticalOptions="Start">
+                                <VerticalStackLayout>
+                                    <Grid Padding="20,16" ColumnDefinitions="*,Auto,100">
+                                        <Label Style="{StaticResource MzSection}" Text="Mais vendidos hoje" />
+                                        <Label Grid.Column="1" Style="{StaticResource MzColumnHeader}" Text="Qtd." VerticalOptions="Center" />
+                                        <Label
+                                            Grid.Column="2"
+                                            HorizontalTextAlignment="End"
+                                            Style="{StaticResource MzColumnHeader}"
+                                            Text="Receita"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                    <Label
+                                        Margin="20,0,20,20"
+                                        IsVisible="{Binding HasNoTopProducts}"
+                                        Style="{StaticResource MzMuted}"
+                                        Text="Nenhum pedido hoje ainda." />
+                                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding TopProducts}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:TopProductViewModel">
+                                                <VerticalStackLayout>
+                                                    <BoxView Style="{StaticResource MzDivider}" />
+                                                    <Grid Padding="20,12" ColumnDefinitions="28,*,Auto,100" ColumnSpacing="8">
+                                                        <Label Style="{StaticResource MzCaption}" Text="{Binding Position}" VerticalOptions="Center" />
+                                                        <Label Grid.Column="1" Style="{StaticResource RowLabel}" Text="{Binding Name}" />
+                                                        <Label Grid.Column="2" Style="{StaticResource MzMuted}" Text="{Binding QuantityText}" VerticalOptions="Center" />
+                                                        <Label
+                                                            Grid.Column="3"
+                                                            HorizontalTextAlignment="End"
+                                                            Style="{StaticResource MzStrong}"
+                                                            Text="{Binding RevenueText}"
+                                                            VerticalOptions="Center" />
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="16">
+                                <!-- Tempo de resposta (REQ. 5) -->
+                                <Border Padding="20" Style="{StaticResource MzCard}">
+                                    <VerticalStackLayout Spacing="16">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Style="{StaticResource MzSection}" Text="Tempo de resposta" />
+                                            <Label Style="{StaticResource MzMuted}" Text="Do envio do pedido até aparecer na cozinha" />
+                                        </VerticalStackLayout>
+                                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                                            <VerticalStackLayout Spacing="2">
+                                                <Label Style="{StaticResource MzCaption}" Text="Média" />
+                                                <Label Style="{StaticResource MzMetric}" Text="{Binding LatencyAvgText}" />
+                                            </VerticalStackLayout>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                <Label Style="{StaticResource MzCaption}" Text="95% até" />
+                                                <Label Style="{StaticResource MzMetric}" Text="{Binding LatencyP95Text}" />
+                                            </VerticalStackLayout>
+                                            <VerticalStackLayout Grid.Column="2" Spacing="2">
+                                                <Label Style="{StaticResource MzCaption}" Text="Abaixo de 2 s" />
+                                                <Label
+                                                    Style="{StaticResource MzMetric}"
+                                                    Text="{Binding LatencyUnderText}"
+                                                    TextColor="{DynamicResource MzSuccessText}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                        <Label Style="{StaticResource MzCaption}" Text="{Binding LatencySamplesText}" />
+                                    </VerticalStackLayout>
                                 </Border>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </HorizontalStackLayout>
+
+                                <!-- Mesa deste aparelho -->
+                                <Border Padding="20,16" Style="{StaticResource MzCard}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                                        <Border Style="{StaticResource MzEmptyIcon}" HeightRequest="40" WidthRequest="40">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="20" />
+                                            </Border.StrokeShape>
+                                            <controls:MzIcon Color="{DynamicResource MzTextMuted}" Name="hash" Size="18" />
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                            <Label Style="{StaticResource MzStrong}" Text="{Binding Table.DisplayText, StringFormat='Este aparelho: {0}'}" />
+                                            <Label Style="{StaticResource MzCaption}" Text="Pedidos feitos aqui chegam à cozinha com esse número." />
+                                        </VerticalStackLayout>
+                                        <controls:MzButton
+                                            Grid.Column="2"
+                                            Command="{Binding ChangeTableCommand}"
+                                            Text="Alterar"
+                                            Variant="Outline" />
+                                    </Grid>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
                 </ScrollView>
 
-                <CollectionView
-                    Grid.Row="2"
-                    Margin="20,4,20,0"
-                    ItemsSource="{Binding Products}"
-                    SelectionMode="None">
-                    <CollectionView.ItemsLayout>
-                        <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.EmptyView>
-                        <Label
-                            Margin="0,48"
-                            HorizontalOptions="Center"
-                            Style="{StaticResource MzMuted}"
-                            Text="Nenhum produto nesta categoria." />
-                    </CollectionView.EmptyView>
-                    <CollectionView.Footer>
-                        <BoxView HeightRequest="40" Color="Transparent" />
-                    </CollectionView.Footer>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="vm:ManagerProductViewModel">
-                            <Border Padding="18,14" Style="{StaticResource MzCard}">
-                                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="16">
-                                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
-                                        <Label Style="{StaticResource MzName}" Text="{Binding Name}">
-                                            <Label.Triggers>
-                                                <DataTrigger Binding="{Binding IsAvailable}" TargetType="Label" Value="False">
-                                                    <Setter Property="TextDecorations" Value="Strikethrough" />
+                <!-- ================= Pedidos de hoje ================= -->
+                <Border
+                    Margin="32,4,32,24"
+                    Padding="0"
+                    IsVisible="{Binding IsOrders}"
+                    Style="{StaticResource MzCard}"
+                    VerticalOptions="Fill">
+                    <Grid RowDefinitions="Auto,*">
+                        <Grid Padding="20,12" ColumnDefinitions="110,*,110,130,260" ColumnSpacing="16">
+                            <Label Style="{StaticResource MzColumnHeader}" Text="Mesa" />
+                            <Label Grid.Column="1" Style="{StaticResource MzColumnHeader}" Text="Itens" />
+                            <Label Grid.Column="2" Style="{StaticResource MzColumnHeader}" Text="Total" />
+                            <Label Grid.Column="3" Style="{StaticResource MzColumnHeader}" Text="Status" />
+                        </Grid>
+                        <CollectionView Grid.Row="1" ItemsSource="{Binding Orders}" SelectionMode="None">
+                            <CollectionView.EmptyView>
+                                <Label
+                                    Margin="20,32"
+                                    HorizontalOptions="Center"
+                                    Style="{StaticResource MzMuted}"
+                                    Text="Nenhum pedido hoje ainda." />
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:OrderCardViewModel">
+                                    <VerticalStackLayout>
+                                        <BoxView Style="{StaticResource MzDivider}" />
+                                        <Grid Padding="20,14" ColumnDefinitions="110,*,110,130,260" ColumnSpacing="16">
+                                            <Grid.Triggers>
+                                                <DataTrigger Binding="{Binding IsCancelled}" TargetType="Grid" Value="True">
+                                                    <Setter Property="Opacity" Value="0.55" />
                                                 </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                        <Label Style="{StaticResource MzMuted}">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="{Binding CategoryName}" />
-                                                    <Span Text="  ·  " />
-                                                    <Span Text="{Binding OptionsText}" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
+                                            </Grid.Triggers>
+                                            <VerticalStackLayout VerticalOptions="Center">
+                                                <Label Style="{StaticResource MzStrong}" Text="{Binding Title}" />
+                                                <Label Style="{StaticResource MzCaption}" Text="{Binding TimeText}" />
+                                            </VerticalStackLayout>
+                                            <VerticalStackLayout
+                                                Grid.Column="1"
+                                                BindableLayout.ItemsSource="{Binding Lines}"
+                                                Spacing="2"
+                                                VerticalOptions="Center">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:OrderLineViewModel">
+                                                        <VerticalStackLayout>
+                                                            <Label Style="{StaticResource MzBody}" Text="{Binding Text}" />
+                                                            <Label
+                                                                IsVisible="{Binding HasDetails}"
+                                                                Style="{StaticResource MzCaption}"
+                                                                Text="{Binding Details}" />
+                                                        </VerticalStackLayout>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </VerticalStackLayout>
+                                            <Label
+                                                Grid.Column="2"
+                                                Style="{StaticResource MzStrong}"
+                                                Text="{Binding Total, StringFormat='{0:C2}'}"
+                                                VerticalOptions="Center" />
+                                            <controls:StatusBadge Grid.Column="3" Status="{Binding Status}" />
+                                            <HorizontalStackLayout
+                                                Grid.Column="4"
+                                                HorizontalOptions="End"
+                                                IsVisible="{Binding IsOpen}"
+                                                Spacing="8">
+                                                <controls:MzButton
+                                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.CancelOrderCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    Size="36"
+                                                    Text="Cancelar"
+                                                    Variant="Danger" />
+                                                <controls:MzButton
+                                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.AdvanceOrderCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    Size="36"
+                                                    Text="{Binding ActionText}"
+                                                    Variant="Primary" />
+                                            </HorizontalStackLayout>
+                                        </Grid>
                                     </VerticalStackLayout>
-                                    <Label
-                                        Grid.Column="1"
-                                        Style="{StaticResource MzPrice}"
-                                        Text="{Binding PriceText}"
-                                        VerticalOptions="Center" />
-                                    <!-- Disponível / esgotado: um toque alterna -->
-                                    <Border
-                                        Grid.Column="2"
-                                        Padding="12,6"
-                                        BackgroundColor="{StaticResource MzDestructiveTint}"
-                                        Style="{StaticResource MzBadge}">
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </Border>
+
+                <!-- ================= Mesas abertas ================= -->
+                <Grid IsVisible="{Binding IsTables}">
+                    <CollectionView
+                        x:Name="OpenBillsList"
+                        Margin="32,4,32,0"
+                        ItemsSource="{Binding OpenBills}"
+                        SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout
+                                HorizontalItemSpacing="16"
+                                Orientation="Vertical"
+                                Span="3"
+                                VerticalItemSpacing="16" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.EmptyView>
+                            <VerticalStackLayout Padding="0,48" Spacing="10">
+                                <Border Style="{StaticResource MzEmptyIcon}">
+                                    <controls:MzIcon Color="{DynamicResource MzTextMuted}" Name="hash" Size="24" />
+                                </Border>
+                                <Label HorizontalOptions="Center" Style="{StaticResource MzSection}" Text="Nenhuma mesa com conta aberta" />
+                                <Label HorizontalOptions="Center" Style="{StaticResource MzMuted}" Text="As contas aparecem aqui a partir do primeiro pedido de cada mesa." />
+                            </VerticalStackLayout>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:OpenBillViewModel">
+                                <Border Padding="20" Style="{StaticResource MzCard}">
+                                    <VerticalStackLayout Spacing="14">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <VerticalStackLayout Spacing="2">
+                                                <Label Style="{StaticResource MzSection}" Text="{Binding Title}" />
+                                                <Label Style="{StaticResource MzCaption}" Text="{Binding Subtitle}" />
+                                            </VerticalStackLayout>
+                                            <Label
+                                                Grid.Column="1"
+                                                FontFamily="OpenSansSemibold"
+                                                FontSize="18"
+                                                Text="{Binding TotalText}" />
+                                        </Grid>
+                                        <controls:AlertBanner Kind="Warning" Text="{Binding InProgressNotice}" />
+                                        <controls:MzButton
+                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.CloseOpenBillCommand}"
+                                            CommandParameter="{Binding .}"
+                                            HorizontalOptions="Fill"
+                                            Icon="card"
+                                            Text="Encerrar conta"
+                                            Variant="Outline" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+
+                <!-- ================= Cardápio ================= -->
+                <Grid IsVisible="{Binding IsMenu}" RowDefinitions="Auto,*">
+                    <ScrollView HorizontalScrollBarVisibility="Never" Orientation="Horizontal">
+                        <HorizontalStackLayout
+                            Padding="32,0,32,12"
+                            BindableLayout.ItemsSource="{Binding CategoryFilters}"
+                            Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CategoryFilterViewModel">
+                                    <Border Style="{StaticResource MzChip}">
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer
-                                                Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ToggleAvailabilityCommand}"
+                                                Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.FilterCategoryCommand}"
                                                 CommandParameter="{Binding .}" />
                                         </Border.GestureRecognizers>
                                         <Border.Triggers>
-                                            <DataTrigger Binding="{Binding IsAvailable}" TargetType="Border" Value="True">
-                                                <Setter Property="BackgroundColor" Value="{StaticResource MzSuccessTint}" />
+                                            <DataTrigger Binding="{Binding IsSelected}" TargetType="Border" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{DynamicResource MzText}" />
+                                                <Setter Property="Stroke" Value="{DynamicResource MzText}" />
                                             </DataTrigger>
                                         </Border.Triggers>
-                                        <Label
-                                            Style="{StaticResource MzBadgeLabel}"
-                                            Text="{Binding AvailabilityText}"
-                                            TextColor="{StaticResource MzDestructiveLight}">
+                                        <Label Style="{StaticResource MzChipLabel}" Text="{Binding Text}">
                                             <Label.Triggers>
-                                                <DataTrigger Binding="{Binding IsAvailable}" TargetType="Label" Value="True">
-                                                    <Setter Property="TextColor" Value="{StaticResource MzSuccessText}" />
+                                                <DataTrigger Binding="{Binding IsSelected}" TargetType="Label" Value="True">
+                                                    <Setter Property="TextColor" Value="{DynamicResource MzSurface}" />
                                                 </DataTrigger>
                                             </Label.Triggers>
                                         </Label>
                                     </Border>
-                                    <Button
-                                        Grid.Column="3"
-                                        Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.EditProductCommand}"
-                                        CommandParameter="{Binding .}"
-                                        Style="{StaticResource MzOutlineButton}"
-                                        Text="Editar"
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+                    </ScrollView>
+
+                    <Border
+                        Grid.Row="1"
+                        Margin="32,0,32,24"
+                        Padding="0"
+                        Style="{StaticResource MzCard}">
+                        <Grid RowDefinitions="Auto,*">
+                            <Grid Padding="20,12" ColumnDefinitions="*,160,110,130,48" ColumnSpacing="16">
+                                <Label Style="{StaticResource MzColumnHeader}" Text="Produto" />
+                                <Label Grid.Column="1" Style="{StaticResource MzColumnHeader}" Text="Categoria" />
+                                <Label Grid.Column="2" Style="{StaticResource MzColumnHeader}" Text="Preço" />
+                                <Label Grid.Column="3" Style="{StaticResource MzColumnHeader}" Text="Situação" />
+                            </Grid>
+                            <CollectionView Grid.Row="1" ItemsSource="{Binding Products}" SelectionMode="None">
+                                <CollectionView.EmptyView>
+                                    <Label
+                                        Margin="20,32"
+                                        HorizontalOptions="Center"
+                                        Style="{StaticResource MzMuted}"
+                                        Text="Nenhum produto nesta categoria." />
+                                </CollectionView.EmptyView>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ManagerProductViewModel">
+                                        <VerticalStackLayout>
+                                            <BoxView Style="{StaticResource MzDivider}" />
+                                            <Grid Padding="20,12" ColumnDefinitions="*,160,110,130,48" ColumnSpacing="16">
+                                                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                                    <Label Style="{StaticResource MzStrong}" Text="{Binding Name}" />
+                                                    <Label Style="{StaticResource MzCaption}" Text="{Binding OptionsText}" />
+                                                </VerticalStackLayout>
+                                                <Label Grid.Column="1" Style="{StaticResource RowLabel}" Text="{Binding CategoryName}" />
+                                                <Label Grid.Column="2" Style="{StaticResource RowLabel}" Text="{Binding PriceText}" />
+                                                <!-- Toque alterna disponível/esgotado -->
+                                                <Border
+                                                    Grid.Column="3"
+                                                    Padding="8,3,10,3"
+                                                    BackgroundColor="{DynamicResource MzDangerSoft}"
+                                                    HorizontalOptions="Start"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="6" />
+                                                    </Border.StrokeShape>
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer
+                                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.ToggleAvailabilityCommand}"
+                                                            CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                    <Border.Triggers>
+                                                        <DataTrigger Binding="{Binding IsAvailable}" TargetType="Border" Value="True">
+                                                            <Setter Property="BackgroundColor" Value="{DynamicResource MzSuccessSoft}" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+                                                    <HorizontalStackLayout Spacing="6">
+                                                        <Ellipse
+                                                            Fill="{DynamicResource MzDangerText}"
+                                                            HeightRequest="6"
+                                                            VerticalOptions="Center"
+                                                            WidthRequest="6">
+                                                            <Ellipse.Triggers>
+                                                                <DataTrigger Binding="{Binding IsAvailable}" TargetType="Ellipse" Value="True">
+                                                                    <Setter Property="Fill" Value="{DynamicResource MzSuccessText}" />
+                                                                </DataTrigger>
+                                                            </Ellipse.Triggers>
+                                                        </Ellipse>
+                                                        <Label
+                                                            Style="{StaticResource MzBadgeLabel}"
+                                                            Text="{Binding AvailabilityText}"
+                                                            TextColor="{DynamicResource MzDangerText}">
+                                                            <Label.Triggers>
+                                                                <DataTrigger Binding="{Binding IsAvailable}" TargetType="Label" Value="True">
+                                                                    <Setter Property="TextColor" Value="{DynamicResource MzSuccessText}" />
+                                                                </DataTrigger>
+                                                            </Label.Triggers>
+                                                        </Label>
+                                                    </HorizontalStackLayout>
+                                                </Border>
+                                                <controls:MzButton
+                                                    Grid.Column="4"
+                                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.EditProductCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    Icon="edit"
+                                                    Size="36"
+                                                    Variant="Ghost" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- ================= Usuários ================= -->
+                <Border
+                    Margin="32,4,32,24"
+                    Padding="0"
+                    IsVisible="{Binding IsUsers}"
+                    Style="{StaticResource MzCard}"
+                    VerticalOptions="Start">
+                    <VerticalStackLayout>
+                        <Grid Padding="20,12" ColumnDefinitions="*,140,130,48" ColumnSpacing="16">
+                            <Label Style="{StaticResource MzColumnHeader}" Text="Nome" />
+                            <Label Grid.Column="1" Style="{StaticResource MzColumnHeader}" Text="Perfil" />
+                            <Label Grid.Column="2" Style="{StaticResource MzColumnHeader}" Text="Situação" />
+                        </Grid>
+                        <VerticalStackLayout x:Name="UsersList" BindableLayout.ItemsSource="{Binding Users}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ManagerUserViewModel">
+                                    <VerticalStackLayout>
+                                        <BoxView Style="{StaticResource MzDivider}" />
+                                        <Grid Padding="20,12" ColumnDefinitions="*,140,130,48" ColumnSpacing="16">
+                                            <Grid.Triggers>
+                                                <DataTrigger Binding="{Binding IsInactive}" TargetType="Grid" Value="True">
+                                                    <Setter Property="Opacity" Value="0.55" />
+                                                </DataTrigger>
+                                            </Grid.Triggers>
+                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                                <Border
+                                                    BackgroundColor="{DynamicResource MzSurfaceAlt}"
+                                                    HeightRequest="34"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center"
+                                                    WidthRequest="34">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="17" />
+                                                    </Border.StrokeShape>
+                                                    <Label
+                                                        FontFamily="OpenSansSemibold"
+                                                        FontSize="13"
+                                                        HorizontalOptions="Center"
+                                                        Text="{Binding Initial}"
+                                                        TextColor="{DynamicResource MzTextMuted}"
+                                                        VerticalOptions="Center" />
+                                                </Border>
+                                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                                    <Label Style="{StaticResource MzStrong}" Text="{Binding Title}" />
+                                                    <Label Style="{StaticResource MzCaption}" Text="{Binding Subtitle}" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                            <Label Grid.Column="1" Style="{StaticResource RowLabel}" Text="{Binding RoleText}" />
+                                            <Label Grid.Column="2" Style="{StaticResource RowLabel}" Text="{Binding StatusText}" />
+                                            <controls:MzButton
+                                                Grid.Column="3"
+                                                Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.EditUserCommand}"
+                                                CommandParameter="{Binding .}"
+                                                Icon="edit"
+                                                Size="36"
+                                                Variant="Ghost" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ================= Aparência ================= -->
+                <ScrollView IsVisible="{Binding IsAppearance}">
+                    <Grid Padding="32,4,32,32" ColumnDefinitions="*,340" ColumnSpacing="24">
+                        <VerticalStackLayout Spacing="16">
+                            <controls:AlertBanner Kind="Success" Text="{Binding AppearanceMessage}" />
+
+                            <!-- Identificação -->
+                            <Border Padding="24,20" Style="{StaticResource MzCard}">
+                                <VerticalStackLayout Spacing="12">
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Style="{StaticResource MzSection}" Text="Identificação" />
+                                        <Label Style="{StaticResource MzMuted}" Text="Nome exibido no topo do cardápio e no painel." />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Spacing="6">
+                                        <Label Style="{StaticResource MzFieldLabel}" Text="Nome do estabelecimento" />
+                                        <Border Style="{StaticResource MzInput}">
+                                            <Entry MaxLength="40" Placeholder="Ex.: Cantina da Praça" Text="{Binding RestaurantNameInput}" />
+                                        </Border>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Cor de destaque -->
+                            <Border Padding="24,20" Style="{StaticResource MzCard}">
+                                <VerticalStackLayout Spacing="14">
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Style="{StaticResource MzSection}" Text="Cor de destaque" />
+                                        <Label Style="{StaticResource MzMuted}" Text="Usada em botões, seleção e no logotipo. O fundo e os textos seguem a paleta do Menuz." />
+                                    </VerticalStackLayout>
+                                    <FlexLayout BindableLayout.ItemsSource="{Binding AccentOptions}" Direction="Row" Wrap="Wrap">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AccentOptionViewModel">
+                                                <Border
+                                                    Margin="0,0,10,10"
+                                                    Padding="10,8,14,8"
+                                                    Style="{StaticResource MzChip}">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer
+                                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.SelectAccentCommand}"
+                                                            CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                    <Border.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSelected}" TargetType="Border" Value="True">
+                                                            <Setter Property="Stroke" Value="{DynamicResource MzText}" />
+                                                            <Setter Property="StrokeThickness" Value="2" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+                                                    <HorizontalStackLayout Spacing="10">
+                                                        <Ellipse
+                                                            Fill="{Binding Swatch}"
+                                                            HeightRequest="20"
+                                                            VerticalOptions="Center"
+                                                            WidthRequest="20" />
+                                                        <Label Style="{StaticResource MzStrong}" Text="{Binding Name}" VerticalOptions="Center" />
+                                                    </HorizontalStackLayout>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <!-- Tema -->
+                            <Border Padding="24,20" Style="{StaticResource MzCard}">
+                                <VerticalStackLayout Spacing="14">
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Style="{StaticResource MzSection}" Text="Tema" />
+                                        <Label Style="{StaticResource MzMuted}" Text="Vale para todos os aparelhos: tablets das mesas, cozinha e gerência." />
+                                    </VerticalStackLayout>
+                                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding ModeOptions}" Spacing="12">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:ThemeModeOptionViewModel">
+                                                <Border
+                                                    Padding="0"
+                                                    Style="{StaticResource MzCard}"
+                                                    WidthRequest="220">
+                                                    <Border.GestureRecognizers>
+                                                        <TapGestureRecognizer
+                                                            Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.SelectModeCommand}"
+                                                            CommandParameter="{Binding .}" />
+                                                    </Border.GestureRecognizers>
+                                                    <Border.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSelected}" TargetType="Border" Value="True">
+                                                            <Setter Property="Stroke" Value="{DynamicResource MzPrimary}" />
+                                                            <Setter Property="StrokeThickness" Value="2" />
+                                                        </DataTrigger>
+                                                    </Border.Triggers>
+                                                    <VerticalStackLayout>
+                                                        <!-- Miniatura do tema -->
+                                                        <Grid Padding="14" BackgroundColor="#F4F4EB" HeightRequest="84" RowDefinitions="Auto,*" RowSpacing="8">
+                                                            <Grid.Triggers>
+                                                                <DataTrigger Binding="{Binding IsDark}" TargetType="Grid" Value="True">
+                                                                    <Setter Property="BackgroundColor" Value="#1A0E0A" />
+                                                                </DataTrigger>
+                                                            </Grid.Triggers>
+                                                            <BoxView
+                                                                CornerRadius="3"
+                                                                HeightRequest="8"
+                                                                HorizontalOptions="Start"
+                                                                WidthRequest="90"
+                                                                Color="#532718">
+                                                                <BoxView.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsDark}" TargetType="BoxView" Value="True">
+                                                                        <Setter Property="Color" Value="#F4F4EB" />
+                                                                    </DataTrigger>
+                                                                </BoxView.Triggers>
+                                                            </BoxView>
+                                                            <HorizontalStackLayout Grid.Row="1" Spacing="8">
+                                                                <BoxView CornerRadius="6" WidthRequest="56" Color="#FFFFFF">
+                                                                    <BoxView.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsDark}" TargetType="BoxView" Value="True">
+                                                                            <Setter Property="Color" Value="#241611" />
+                                                                        </DataTrigger>
+                                                                    </BoxView.Triggers>
+                                                                </BoxView>
+                                                                <BoxView CornerRadius="6" WidthRequest="56" Color="#FFFFFF">
+                                                                    <BoxView.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsDark}" TargetType="BoxView" Value="True">
+                                                                            <Setter Property="Color" Value="#241611" />
+                                                                        </DataTrigger>
+                                                                    </BoxView.Triggers>
+                                                                </BoxView>
+                                                            </HorizontalStackLayout>
+                                                        </Grid>
+                                                        <VerticalStackLayout Padding="14,10,14,12" Spacing="2">
+                                                            <Label Style="{StaticResource MzStrong}" Text="{Binding Label}" />
+                                                            <Label Style="{StaticResource MzCaption}" Text="{Binding Description}" />
+                                                        </VerticalStackLayout>
+                                                    </VerticalStackLayout>
+                                                </Border>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Pré-visualização -->
+                        <Border
+                            Grid.Column="1"
+                            Padding="0"
+                            Style="{StaticResource MzCard}"
+                            VerticalOptions="Start">
+                            <VerticalStackLayout>
+                                <Label
+                                    Margin="20,16,20,12"
+                                    Style="{StaticResource MzColumnHeader}"
+                                    Text="Pré-visualização" />
+                                <BoxView Style="{StaticResource MzDivider}" />
+                                <Grid Padding="16,12" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Border Style="{StaticResource MzLogo}" HeightRequest="30" WidthRequest="30">
+                                        <Label Style="{StaticResource MzLogoLabel}" FontSize="15" Text="{Binding NamePreviewInitial}" />
+                                    </Border>
+                                    <Label
+                                        Grid.Column="1"
+                                        LineBreakMode="TailTruncation"
+                                        Style="{StaticResource MzStrong}"
+                                        Text="{Binding RestaurantNameInput}"
                                         VerticalOptions="Center" />
                                 </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-            </Grid>
+                                <BoxView Style="{StaticResource MzDivider}" />
+                                <VerticalStackLayout Padding="16" BackgroundColor="{DynamicResource MzBackground}" Spacing="12">
+                                    <Border Padding="0" Style="{StaticResource MzCard}">
+                                        <VerticalStackLayout>
+                                            <Grid BackgroundColor="{DynamicResource MzSurfaceAlt}" HeightRequest="90">
+                                                <controls:MzIcon Color="{DynamicResource MzTextSubtle}" Name="image" Size="24" />
+                                            </Grid>
+                                            <Grid Padding="12" ColumnDefinitions="*,Auto">
+                                                <VerticalStackLayout>
+                                                    <Label Style="{StaticResource MzStrong}" Text="X-Burger" />
+                                                    <Label Style="{StaticResource MzCaption}" Text="R$ 24,90" />
+                                                </VerticalStackLayout>
+                                                <controls:MzButton Grid.Column="1" Icon="plus" Size="32" Variant="Primary" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                    <HorizontalStackLayout Spacing="8">
+                                        <controls:StatusBadge Status="Pending" />
+                                        <controls:StatusBadge Status="Preparing" />
+                                        <controls:StatusBadge Status="Ready" />
+                                    </HorizontalStackLayout>
+                                    <controls:MzButton
+                                        HorizontalOptions="Fill"
+                                        Icon="arrow-right"
+                                        Text="Revisar e enviar"
+                                        Variant="Primary" />
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+                </ScrollView>
 
-            <ActivityIndicator
-                Margin="0,24,0,0"
-                HorizontalOptions="Center"
-                IsRunning="{Binding IsBusy}"
-                IsVisible="{Binding IsBusy}"
-                VerticalOptions="Start" />
+                <ActivityIndicator
+                    Margin="0,24,0,0"
+                    HorizontalOptions="Center"
+                    IsRunning="{Binding IsBusy}"
+                    IsVisible="{Binding IsBusy}"
+                    VerticalOptions="Start" />
+            </Grid>
         </Grid>
     </Grid>
 </ContentPage>

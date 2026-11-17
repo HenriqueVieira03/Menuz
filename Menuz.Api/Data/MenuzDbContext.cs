@@ -14,9 +14,19 @@ public class MenuzDbContext(DbContextOptions<MenuzDbContext> options) : DbContex
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Bill> Bills => Set<Bill>();
+    public DbSet<RestaurantSettings> Settings => Set<RestaurantSettings>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        mb.Entity<RestaurantSettings>(e =>
+        {
+            e.ToTable("Settings");
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.RestaurantName).HasMaxLength(40).IsRequired();
+            e.Property(x => x.AccentKey).HasMaxLength(20).IsRequired();
+            e.Property(x => x.ThemeMode).HasMaxLength(10).IsRequired();
+        });
+
         mb.Entity<User>(e =>
         {
             e.Property(x => x.Username).HasMaxLength(40).IsRequired();

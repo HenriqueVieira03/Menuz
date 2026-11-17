@@ -3,86 +3,82 @@
     x:Class="ProjetoIntegradorMenuz.Views.PaymentDonePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:ProjetoIntegradorMenuz.Controls"
     Title="Pagamento realizado"
     Shell.NavBarIsVisible="False">
 
-    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
 
-    <Grid Padding="20">
+    <Grid Padding="24">
         <Border
-            Padding="40,44"
+            Padding="40"
             HorizontalOptions="Center"
-            MaximumWidthRequest="480"
-            Style="{StaticResource MzCardRaised}"
+            MaximumWidthRequest="440"
+            Style="{StaticResource MzCard}"
             VerticalOptions="Center">
-            <VerticalStackLayout HorizontalOptions="Center" Spacing="18">
-
+            <VerticalStackLayout Spacing="20">
                 <Border
-                    BackgroundColor="{StaticResource MzSuccessTint}"
-                    HeightRequest="96"
+                    BackgroundColor="{DynamicResource MzSuccessSoft}"
+                    HeightRequest="64"
                     HorizontalOptions="Center"
                     StrokeThickness="0"
-                    WidthRequest="96">
+                    WidthRequest="64">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="48" />
+                        <RoundRectangle CornerRadius="32" />
                     </Border.StrokeShape>
-                    <Label
-                        FontFamily="OpenSansSemibold"
-                        FontSize="44"
-                        HorizontalOptions="Center"
-                        Text="✓"
-                        TextColor="{StaticResource MzSuccessText}"
-                        VerticalOptions="Center" />
+                    <controls:MzIcon
+                        Color="{DynamicResource MzSuccessText}"
+                        Name="check"
+                        Size="30" />
                 </Border>
 
-                <VerticalStackLayout Spacing="8">
+                <VerticalStackLayout Spacing="6">
                     <Label
-                        HorizontalOptions="Center"
                         HorizontalTextAlignment="Center"
-                        Style="{StaticResource MzDisplay}"
-                        Text="Pagamento realizado!" />
+                        Style="{StaticResource MzTitle}"
+                        Text="Pagamento confirmado" />
                     <Label
-                        HorizontalOptions="Center"
                         HorizontalTextAlignment="Center"
-                        Style="{StaticResource MzBody}"
-                        Text="Obrigado pela visita! Esperamos você de novo em breve."
-                        TextColor="{AppThemeBinding Light={StaticResource MzMutedForegroundLight}, Dark={StaticResource MzMutedForegroundDark}}" />
+                        Style="{StaticResource MzMuted}"
+                        Text="Obrigado pela visita." />
                 </VerticalStackLayout>
 
+                <!-- Recibo -->
                 <Border
-                    Margin="0,6"
-                    Padding="16,12"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
-                    StrokeThickness="0">
+                    Padding="16"
+                    BackgroundColor="{DynamicResource MzSurfaceSunken}"
+                    Stroke="{DynamicResource MzBorder}"
+                    StrokeThickness="1">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
+                        <RoundRectangle CornerRadius="8" />
                     </Border.StrokeShape>
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                        <Label
-                            x:Name="TableLabel"
-                            HorizontalOptions="Center"
-                            Style="{StaticResource MzMuted}" />
-                        <Label
-                            x:Name="AmountLabel"
-                            FontFamily="OpenSansSemibold"
-                            FontSize="26"
-                            HorizontalOptions="Center"
-                            TextColor="{StaticResource MzPrimaryDeep}" />
-                        <Label
-                            HorizontalOptions="Center"
-                            Style="{StaticResource MzMuted}"
-                            Text="Total pago (simulação)" />
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Style="{StaticResource MzMuted}" Text="Mesa" />
+                            <Label x:Name="TableLabel" Grid.Column="1" Style="{StaticResource MzStrong}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Style="{StaticResource MzMuted}" Text="Forma de pagamento" />
+                            <Label Grid.Column="1" Style="{StaticResource MzStrong}" Text="Simulado" />
+                        </Grid>
+                        <BoxView Style="{StaticResource MzDivider}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Style="{StaticResource MzStrong}" Text="Total pago" VerticalOptions="Center" />
+                            <Label
+                                x:Name="AmountLabel"
+                                Grid.Column="1"
+                                FontFamily="OpenSansSemibold"
+                                FontSize="20" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 
                 <Button
                     Clicked="VoltarMenu_Clicked"
-                    HeightRequest="52"
                     Style="{StaticResource MzPrimaryButton}"
-                    Text="Voltar ao cardápio" />
+                    Text="Concluir" />
             </VerticalStackLayout>
         </Border>
     </Grid>

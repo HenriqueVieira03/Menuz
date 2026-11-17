@@ -3,210 +3,182 @@
     x:Class="ProjetoIntegradorMenuz.Views.CartPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:ProjetoIntegradorMenuz.Controls"
     xmlns:models="clr-namespace:ProjetoIntegradorMenuz.Models"
     xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
     x:DataType="vm:CartViewModel"
-    Title="Seu pedido"
+    Title="Revisar pedido"
     Shell.NavBarIsVisible="False">
 
-    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
 
     <Grid RowDefinitions="Auto,Auto,*">
 
-        <!-- Barra superior -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Style="{StaticResource MzAppBar}">
-            <Button
-                Command="{Binding GoBackCommand}"
-                Style="{StaticResource MzQtyButton}"
-                Text="←"
-                VerticalOptions="Center" />
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Style="{StaticResource MzAppBar}">
+            <controls:MzButton Command="{Binding GoBackCommand}" Icon="arrow-left" Variant="Outline" />
             <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                <Label Style="{StaticResource MzTitle}" Text="Seu pedido" />
-                <Label Style="{StaticResource MzMuted}" Text="{Binding Cart.TotalCount, StringFormat='{0} item(ns)'}" />
+                <Label Style="{StaticResource MzSection}" Text="Revisar pedido" />
+                <Label Style="{StaticResource MzCaption}" Text="{Binding Table.DisplayText}" />
             </VerticalStackLayout>
-            <Border
-                Grid.Column="2"
-                Padding="14,8"
-                BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
-                IsVisible="{Binding Table.IsConfigured}"
-                Style="{StaticResource MzChip}"
-                Stroke="Transparent"
-                VerticalOptions="Center">
-                <Label
-                    Style="{StaticResource MzChipLabel}"
-                    Text="{Binding Table.DisplayText, StringFormat='🪑  {0}'}"
-                    TextColor="{StaticResource MzPrimaryDeep}" />
-            </Border>
         </Grid>
         <BoxView Grid.Row="1" Style="{StaticResource MzDivider}" />
 
         <Grid
             x:Name="ContentGrid"
             Grid.Row="2"
-            Padding="20"
+            Padding="24"
             ColumnDefinitions="*,360"
-            RowDefinitions="*"
-            RowSpacing="16"
-            ColumnSpacing="20"
+            ColumnSpacing="24"
             HorizontalOptions="Center"
-            MaximumWidthRequest="1100">
+            MaximumWidthRequest="1120"
+            RowDefinitions="*"
+            RowSpacing="16">
 
             <!-- Itens -->
-            <CollectionView ItemsSource="{Binding Cart.Items}" SelectionMode="None">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
-                </CollectionView.ItemsLayout>
+            <Border Padding="0" Style="{StaticResource MzCard}" VerticalOptions="Start">
+                <CollectionView ItemsSource="{Binding Cart.Items}" SelectionMode="None">
+                    <CollectionView.Header>
+                        <Grid Padding="20,16" ColumnDefinitions="*,Auto">
+                            <Label Style="{StaticResource MzColumnHeader}" Text="Item" />
+                            <Label Grid.Column="1" Style="{StaticResource MzColumnHeader}" Text="Subtotal" />
+                        </Grid>
+                    </CollectionView.Header>
 
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout
-                        HorizontalOptions="Center"
-                        Spacing="12"
-                        VerticalOptions="Center">
-                        <Border
-                            BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
-                            HeightRequest="96"
-                            HorizontalOptions="Center"
-                            StrokeThickness="0"
-                            WidthRequest="96">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="48" />
-                            </Border.StrokeShape>
-                            <Label FontSize="44" HorizontalOptions="Center" Text="🛒" VerticalOptions="Center" />
-                        </Border>
-                        <Label HorizontalOptions="Center" Style="{StaticResource MzSection}" Text="Seu carrinho está vazio" />
-                        <Label HorizontalOptions="Center" Style="{StaticResource MzMuted}" Text="Volte ao cardápio e escolha alguns itens." />
-                        <Button
-                            Margin="0,6,0,0"
-                            Command="{Binding GoBackCommand}"
-                            HorizontalOptions="Center"
-                            Style="{StaticResource MzPrimaryButton}"
-                            Text="Ver cardápio" />
-                    </VerticalStackLayout>
-                </CollectionView.EmptyView>
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Padding="24,48" Spacing="10">
+                            <Border Style="{StaticResource MzEmptyIcon}">
+                                <controls:MzIcon
+                                    Color="{DynamicResource MzTextMuted}"
+                                    Name="bag"
+                                    Size="24" />
+                            </Border>
+                            <Label HorizontalOptions="Center" Style="{StaticResource MzSection}" Text="Seu pedido está vazio" />
+                            <Label HorizontalOptions="Center" Style="{StaticResource MzMuted}" Text="Volte ao cardápio e escolha os itens." />
+                            <controls:MzButton
+                                Margin="0,8,0,0"
+                                Command="{Binding GoBackCommand}"
+                                HorizontalOptions="Center"
+                                Icon="book"
+                                Text="Ver cardápio"
+                                Variant="Primary" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
 
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:CartItem">
-                        <Border Padding="18,16" Style="{StaticResource MzCard}">
-                            <Grid
-                                ColumnDefinitions="*,Auto"
-                                ColumnSpacing="16"
-                                RowDefinitions="Auto,Auto"
-                                RowSpacing="14">
-                                <VerticalStackLayout Spacing="3">
-                                    <Label Style="{StaticResource MzName}" Text="{Binding DisplayName}" />
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:CartItem">
+                            <VerticalStackLayout>
+                                <BoxView Style="{StaticResource MzDivider}" />
+                                <Grid
+                                    Padding="20,16"
+                                    ColumnDefinitions="*,Auto"
+                                    ColumnSpacing="16"
+                                    RowDefinitions="Auto,Auto"
+                                    RowSpacing="12">
+                                    <VerticalStackLayout Spacing="3">
+                                        <Label Style="{StaticResource MzName}" Text="{Binding DisplayName}" />
+                                        <Label
+                                            IsVisible="{Binding HasOptions}"
+                                            LineBreakMode="WordWrap"
+                                            Style="{StaticResource MzMuted}"
+                                            Text="{Binding OptionsText}" />
+                                        <Label Style="{StaticResource MzCaption}" Text="{Binding UnitPrice, StringFormat='{0:C2} cada'}" />
+                                    </VerticalStackLayout>
                                     <Label
-                                        IsVisible="{Binding HasOptions}"
-                                        LineBreakMode="WordWrap"
-                                        Style="{StaticResource MzMuted}"
-                                        Text="{Binding OptionsText}"
-                                        TextColor="{StaticResource MzPrimaryDeep}" />
-                                    <Label Style="{StaticResource MzMuted}" Text="{Binding UnitPrice, StringFormat='{0:C2} cada'}" />
-                                </VerticalStackLayout>
+                                        Grid.Column="1"
+                                        Style="{StaticResource MzPrice}"
+                                        Text="{Binding Subtotal, StringFormat='{0:C2}'}"
+                                        HorizontalOptions="End" />
 
-                                <Button
-                                    Grid.Column="1"
-                                    Command="{Binding BindingContext.RemoveCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                    CommandParameter="{Binding .}"
-                                    Style="{StaticResource MzGhostButton}"
-                                    Text="Remover"
-                                    TextColor="{AppThemeBinding Light={StaticResource MzDestructiveLight}, Dark={StaticResource MzDestructiveDark}}"
-                                    VerticalOptions="Start" />
-
-                                <!-- Quantidade -->
-                                <Border
-                                    Grid.Row="1"
-                                    Padding="4"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource MzMutedLight}, Dark={StaticResource MzMutedDark}}"
-                                    HorizontalOptions="Start"
-                                    StrokeThickness="0">
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="12" />
-                                    </Border.StrokeShape>
-                                    <HorizontalStackLayout Spacing="6">
-                                        <Button
-                                            BackgroundColor="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}"
+                                    <HorizontalStackLayout Grid.Row="1" Spacing="10">
+                                        <controls:MzButton
                                             Command="{Binding BindingContext.DecreaseCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                             CommandParameter="{Binding .}"
-                                            HeightRequest="36"
-                                            Style="{StaticResource MzQtyButton}"
-                                            Text="−"
-                                            WidthRequest="36" />
+                                            Icon="minus"
+                                            Size="34"
+                                            Variant="Outline" />
                                         <Label
                                             FontFamily="OpenSansSemibold"
-                                            FontSize="16"
+                                            FontSize="15"
                                             HorizontalTextAlignment="Center"
-                                            MinimumWidthRequest="28"
+                                            MinimumWidthRequest="24"
                                             Text="{Binding Quantity}"
                                             VerticalOptions="Center" />
-                                        <Button
-                                            BackgroundColor="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}"
+                                        <controls:MzButton
                                             Command="{Binding BindingContext.IncreaseCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                             CommandParameter="{Binding .}"
-                                            HeightRequest="36"
-                                            Style="{StaticResource MzQtyButton}"
-                                            Text="+"
-                                            WidthRequest="36" />
+                                            Icon="plus"
+                                            Size="34"
+                                            Variant="Outline" />
                                     </HorizontalStackLayout>
-                                </Border>
-
-                                <Label
-                                    Grid.Row="1"
-                                    Grid.Column="1"
-                                    Style="{StaticResource MzPrice}"
-                                    Text="{Binding Subtotal, StringFormat='{0:C2}'}"
-                                    VerticalOptions="Center" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                                    <controls:MzButton
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Command="{Binding BindingContext.RemoveCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                        CommandParameter="{Binding .}"
+                                        HorizontalOptions="End"
+                                        Icon="trash"
+                                        Size="34"
+                                        Text="Remover"
+                                        Variant="Ghost" />
+                                </Grid>
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Border>
 
             <!-- Resumo -->
             <Border
                 x:Name="SummaryCard"
                 Grid.Column="1"
-                Padding="22"
-                Style="{StaticResource MzCardRaised}"
+                Padding="20"
+                Style="{StaticResource MzCard}"
                 VerticalOptions="Start">
                 <VerticalStackLayout Spacing="16">
                     <Label Style="{StaticResource MzSection}" Text="Resumo" />
 
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label Style="{StaticResource MzMuted}" Text="Itens" />
-                        <Label Grid.Column="1" Style="{StaticResource MzBody}" Text="{Binding Cart.TotalCount}" />
-                    </Grid>
+                    <VerticalStackLayout Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Style="{StaticResource MzMuted}" Text="Itens" />
+                            <Label Grid.Column="1" Style="{StaticResource MzBody}" Text="{Binding Cart.TotalCount}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Style="{StaticResource MzMuted}" Text="Mesa" />
+                            <Label Grid.Column="1" Style="{StaticResource MzBody}" Text="{Binding Table.TableNumber, TargetNullValue='—'}" />
+                        </Grid>
+                    </VerticalStackLayout>
 
                     <BoxView Style="{StaticResource MzDivider}" />
 
                     <Grid ColumnDefinitions="*,Auto">
-                        <Label Style="{StaticResource MzSection}" Text="Total" VerticalOptions="Center" />
+                        <Label Style="{StaticResource MzStrong}" Text="Total" VerticalOptions="Center" />
                         <Label
                             Grid.Column="1"
-                            FontSize="26"
-                            Style="{StaticResource MzPrice}"
+                            FontFamily="OpenSansSemibold"
+                            FontSize="22"
                             Text="{Binding Cart.TotalPrice, StringFormat='{0:C2}'}" />
                     </Grid>
 
                     <Button
                         x:Name="FinalizarPedido"
                         Clicked="FinalizarPedido_Clicked"
-                        HeightRequest="54"
                         IsEnabled="{Binding IsNotSubmitting}"
                         Style="{StaticResource MzPrimaryButton}"
-                        Text="Finalizar pedido" />
+                        Text="Enviar para a cozinha" />
 
                     <Label
                         HorizontalTextAlignment="Center"
-                        Style="{StaticResource MzMuted}"
+                        Style="{StaticResource MzCaption}"
                         Text="{Binding Table.CartHint}" />
 
-                    <Button
+                    <controls:MzButton
                         Command="{Binding ClearCommand}"
-                        Style="{StaticResource MzGhostButton}"
-                        Text="Limpar carrinho" />
+                        HorizontalOptions="Center"
+                        Icon="trash"
+                        Text="Limpar pedido"
+                        Variant="Ghost" />
                 </VerticalStackLayout>
             </Border>
         </Grid>

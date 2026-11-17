@@ -33,5 +33,6 @@ namespace ProjetoIntegradorMenuz.ViewModels
         public bool IsInactive => !IsActive;
         public bool IsManager { get; }
         public string StatusText => IsActive ? "Ativo" : "Desativado";
+        public string Initial => string.IsNullOrEmpty(Title) ? "?" : Title[..1].ToUpperInvariant();
     }
 }

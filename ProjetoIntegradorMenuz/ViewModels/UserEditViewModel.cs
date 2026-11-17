@@ -26,6 +26,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(SaveText))]
         [NotifyPropertyChangedFor(nameof(PasswordLabel))]
         [NotifyPropertyChangedFor(nameof(PasswordPlaceholder))]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private bool isLoaded;
 
         [ObservableProperty] private string username = string.Empty;
@@ -36,6 +37,7 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [ObservableProperty] private bool isActive = true;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         private bool isBusy;
 
         [ObservableProperty]
@@ -90,7 +92,9 @@ namespace ProjetoIntegradorMenuz.ViewModels
             });
         }
 
-        [RelayCommand]
+        private bool CanSave() => IsLoaded && !IsBusy;
+
+        [RelayCommand(CanExecute = nameof(CanSave))]
         private async Task SaveAsync()
         {
             var error = Validate();

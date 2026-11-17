@@ -14,15 +14,32 @@ namespace ProjetoIntegradorMenuz.ViewModels
         // Cache dos itens por categoria: trocar de aba não recria views nem baixa imagens de novo.
         private readonly Dictionary<int, IReadOnlyList<ProductItemViewModel>> _cache = new();
 
-        public MenuViewModel(MenuApiService api, CartService cart, TableService table)
+        public MenuViewModel(MenuApiService api, CartService cart, TableService table, ThemeService theme)
         {
             _api = api;
             Cart = cart;
             Table = table;
+            Theme = theme;
         }
 
         public CartService Cart { get; }
         public TableService Table { get; }
+
+        /// <summary>Nome do estabelecimento e inicial do logotipo (definidos pela gerência em "Aparência").</summary>
+        public ThemeService Theme { get; }
+
+        // Ajuste de quantidade direto no painel "Seu pedido" (tablet na horizontal).
+        [RelayCommand]
+        private void IncreaseItem(CartItem? item)
+        {
+            if (item is not null) Cart.Increase(item);
+        }
+
+        [RelayCommand]
+        private void DecreaseItem(CartItem? item)
+        {
+            if (item is not null) Cart.Decrease(item);
+        }
 
         /// <summary>Produto aberto no popup de personalização (null = popup fechado).</summary>
         [ObservableProperty]
@@ -38,7 +55,12 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SectionTitle))]
+        [NotifyPropertyChangedFor(nameof(SectionCount))]
         private Category? selectedCategory;
+
+        public string SectionCount => SelectedCategory is { } c
+            ? (c.Products.Count == 1 ? "1 item" : $"{c.Products.Count} itens")
+            : string.Empty;
 
         [ObservableProperty]
         private bool isBusy;
@@ -92,6 +114,9 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
             try
             {
+                // A aparência (nome, cor, tema) pode ter mudado na gerência: atualiza junto com o cardápio.
+                _ = Theme.RefreshFromServerAsync();
+
                 var menu = await _api.GetMenuAsync();
 
                 _cache.Clear();
