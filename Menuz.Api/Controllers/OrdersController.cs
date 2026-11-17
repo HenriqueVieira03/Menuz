@@ -124,6 +124,14 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
         if (request.Status == OrderStatus.Cancelled && !User.IsInRole(Roles.Manager))
             return Forbid();
 
+        var tableNumber = await db.Orders.Where(o => o.Id == id).Select(o => (int?)o.TableNumber).FirstOrDefaultAsync(ct);
+        if (tableNumber is null) return NotFound();
+
+        // Mesma trava da mesa usada ao criar pedidos e fechar a conta: um cancelamento nunca acontece
+        // no meio de um fechamento (senão o total pago poderia incluir um pedido cancelado).
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.LockTableAsync(tableNumber.Value, ct);
+
         var order = await db.Orders.Include(o => o.Items).Include(o => o.Bill).FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null) return NotFound();
 
@@ -136,6 +144,7 @@ public class OrdersController(MenuzDbContext db, IHubContext<OrderHub> hub) : Co
 
         order.SetStatus(request.Status, DateTime.UtcNow);
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         var dto = order.ToDto();
 
