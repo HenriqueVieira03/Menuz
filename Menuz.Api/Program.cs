@@ -1,5 +1,6 @@
 using Menuz.Api.Data;
 using Menuz.Api.Hubs;
+using Menuz.Api.Models;
 using Menuz.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (!string.IsNullOrEmpty(token) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
                     context.Token = token;
                 return Task.CompletedTask;
+            },
+
+            // Conta desativada, removida ou com outro perfil depois do login: o token antigo deixa de valer
+            // na hora (sem isso ele continuaria aceito até expirar, em até 12 h).
+            OnTokenValidated = async context =>
+            {
+                var principal = context.Principal;
+                var idText = (principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) ?? principal?.FindFirst("sub"))?.Value;
+                var roleText = (principal?.FindFirst(System.Security.Claims.ClaimTypes.Role) ?? principal?.FindFirst("role"))?.Value;
+                var db = context.HttpContext.RequestServices.GetRequiredService<MenuzDbContext>();
+
+                UserRole? currentRole = null;
+                if (int.TryParse(idText, out var userId))
+                {
+                    currentRole = await db.Users.AsNoTracking()
+                        .Where(u => u.Id == userId && u.IsActive)
+                        .Select(u => (UserRole?)u.Role)
+                        .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
+                }
+
+                if (currentRole is null || currentRole.Value.ToString() != roleText)
+                    context.Fail("Sessão inválida: usuário desativado ou perfil alterado.");
             }
         };
     });

@@ -148,6 +148,23 @@
                 </Border>
                 <Border Style="{StaticResource TabItem}">
                     <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Users" />
+                    </Border.GestureRecognizers>
+                    <Border.Triggers>
+                        <DataTrigger Binding="{Binding IsUsers}" TargetType="Border" Value="True">
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource MzCardLight}, Dark={StaticResource MzCardDark}}" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Label Style="{StaticResource TabLabel}" Text="Usuários">
+                        <Label.Triggers>
+                            <DataTrigger Binding="{Binding IsUsers}" TargetType="Label" Value="True">
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MzForegroundLight}, Dark={StaticResource MzForegroundDark}}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </Border>
+                <Border Style="{StaticResource TabItem}">
+                    <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="Menu" />
                     </Border.GestureRecognizers>
                     <Border.Triggers>
@@ -337,6 +354,88 @@
                 </VerticalStackLayout>
             </ScrollView>
 
+            <!-- ================= Usuários ================= -->
+            <CollectionView
+                x:Name="UsersList"
+                Margin="20,12,20,0"
+                IsVisible="{Binding IsUsers}"
+                ItemsSource="{Binding Users}"
+                SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="12" Orientation="Vertical" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.Header>
+                    <Grid Margin="0,0,0,12" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                            <Label Style="{StaticResource MzSection}" Text="Usuários da equipe" />
+                            <Label Style="{StaticResource MzMuted}" Text="{Binding UsersSummary}" />
+                        </VerticalStackLayout>
+                        <Button
+                            Grid.Column="1"
+                            Command="{Binding NewUserCommand}"
+                            Style="{StaticResource MzPrimaryButton}"
+                            Text="+  Novo usuário"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </CollectionView.Header>
+                <CollectionView.EmptyView>
+                    <Label
+                        Margin="0,48"
+                        HorizontalOptions="Center"
+                        Style="{StaticResource MzMuted}"
+                        Text="Nenhum usuário cadastrado." />
+                </CollectionView.EmptyView>
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="40" Color="Transparent" />
+                </CollectionView.Footer>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ManagerUserViewModel">
+                        <Border Padding="18,14" Style="{StaticResource MzCard}">
+                            <Border.Triggers>
+                                <DataTrigger Binding="{Binding IsInactive}" TargetType="Border" Value="True">
+                                    <Setter Property="Opacity" Value="0.6" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                    <Label Style="{StaticResource MzTitle}" Text="{Binding Title}" />
+                                    <Label Style="{StaticResource MzMuted}" Text="{Binding Subtitle}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="6"
+                                    VerticalOptions="Center">
+                                    <Border
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource MzPrimaryTintLight}, Dark={StaticResource MzPrimaryTintDark}}"
+                                        HorizontalOptions="End"
+                                        Style="{StaticResource MzBadge}">
+                                        <Label
+                                            Style="{StaticResource MzBadgeLabel}"
+                                            Text="{Binding RoleText}"
+                                            TextColor="{StaticResource MzPrimaryDeep}" />
+                                    </Border>
+                                    <Label
+                                        FontSize="13"
+                                        HorizontalOptions="End"
+                                        Style="{StaticResource MzMuted}"
+                                        Text="{Binding StatusText}" />
+                                </VerticalStackLayout>
+
+                                <Button
+                                    Grid.Column="2"
+                                    Command="{Binding Source={x:Reference PageRoot}, Path=BindingContext.EditUserCommand}"
+                                    CommandParameter="{Binding .}"
+                                    HeightRequest="44"
+                                    Style="{StaticResource MzOutlineButton}"
+                                    Text="Editar"
+                                    VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
             <!-- ================= Mesas abertas ================= -->
             <CollectionView
                 x:Name="OpenBillsList"
@@ -358,7 +457,7 @@
                         Margin="0,48"
                         HorizontalOptions="Center"
                         Style="{StaticResource MzMuted}"
-                         />
+                        Text="Nenhuma mesa com conta aberta." />
                 </CollectionView.EmptyView>
                 <CollectionView.Footer>
                     <BoxView HeightRequest="40" Color="Transparent" />

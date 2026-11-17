@@ -122,6 +122,27 @@ namespace ProjetoIntegradorMenuz.Models
         public decimal AverageBillTotal { get; set; }
     }
 
+    /// <summary>Usuário da equipe (GET /api/admin/users). Role é "Kitchen" ou "Manager".</summary>
+    public class UserAdmin
+    {
+        public int Id { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    /// <summary>Cadastro (Username e Password obrigatórios) e edição (Password só para redefinir a senha).</summary>
+    public class SaveUserRequest
+    {
+        public string? Username { get; set; }
+        public string? DisplayName { get; set; }
+        public string? Password { get; set; }
+        public string? Role { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
     /// <summary>Conta aberta de uma mesa (GET /api/admin/bills/open).</summary>
     public class OpenBill
     {

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProjetoIntegradorMenuz.Views.UserEditPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:ProjetoIntegradorMenuz.ViewModels"
+    x:DataType="vm:UserEditViewModel"
+    Title="{Binding PageTitle}"
+    Shell.NavBarIsVisible="False">
+
+    <!-- A tela tem o próprio botão de voltar; esconde a seta extra que o Windows mostra na barra de título -->
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Barra superior -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Style="{StaticResource MzAppBar}">
+            <Button
+                Command="{Binding CancelCommand}"
+                Style="{StaticResource MzQtyButton}"
+                Text="←"
+                VerticalOptions="Center" />
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                <Label Style="{StaticResource MzOverline}" Text="Usuários" />
+                <Label Style="{StaticResource MzTitle}" Text="{Binding PageTitle}" />
+            </VerticalStackLayout>
+        </Grid>
+        <BoxView Grid.Row="1" Style="{StaticResource MzDivider}" />
+
+        <ScrollView Grid.Row="2">
+            <VerticalStackLayout
+                Padding="20,20,20,32"
+                MaximumWidthRequest="620"
+                Spacing="16">
+
+                <Border Padding="20" Style="{StaticResource MzCard}">
+                    <VerticalStackLayout Spacing="16">
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource MzFieldLabel}" Text="Nome de exibição *" />
+                            <Border Style="{StaticResource MzInput}">
+                                <Entry
+                                    MaxLength="80"
+                                    Placeholder="ex.: Maria Silva"
+                                    Text="{Binding DisplayName}" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource MzFieldLabel}" Text="Usuário (login) *" />
+                            <Border Style="{StaticResource MzInput}">
+                                <Entry
+                                    IsEnabled="{Binding IsNew}"
+                                    IsSpellCheckEnabled="False"
+                                    IsTextPredictionEnabled="False"
+                                    Keyboard="Plain"
+                                    MaxLength="40"
+                                    Placeholder="ex.: maria.silva"
+                                    Text="{Binding Username}" />
+                            </Border>
+                            <Label
+                                IsVisible="{Binding IsNew}"
+                                Style="{StaticResource MzMuted}"
+                                Text="Letras minúsculas, números, ponto, hífen ou sublinhado. Não pode ser alterado depois." />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource MzFieldLabel}" Text="Perfil *" />
+                            <Border Style="{StaticResource MzInput}">
+                                <Picker
+                                    ItemDisplayBinding="{Binding Label, x:DataType=vm:RoleOption}"
+                                    ItemsSource="{Binding Roles}"
+                                    SelectedItem="{Binding SelectedRole}" />
+                            </Border>
+                            <Label Style="{StaticResource MzMuted}" Text="Cozinha: vê pedidos e avança o status. Gerência: tudo da cozinha, mais cardápio, contas, cancelamentos, indicadores e usuários." />
+                        </VerticalStackLayout>
+
+                        <BoxView Style="{StaticResource MzDivider}" />
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <VerticalStackLayout VerticalOptions="Center">
+                                <Label Style="{StaticResource MzFieldLabel}" Text="Acesso ativo" />
+                                <Label Style="{StaticResource MzMuted}" Text="Desative para bloquear o login na hora (ex.: quem saiu da equipe)." />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding IsActive}" VerticalOptions="Center" />
+                        </Grid>
+
+                        <BoxView Style="{StaticResource MzDivider}" />
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource MzFieldLabel}" Text="{Binding PasswordLabel}" />
+                            <Border Style="{StaticResource MzInput}">
+                                <Entry
+                                    IsPassword="True"
+                                    Placeholder="{Binding PasswordPlaceholder}"
+                                    Text="{Binding Password}" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource MzFieldLabel}" Text="Confirmar senha" />
+                            <Border Style="{StaticResource MzInput}">
+                                <Entry
+                                    IsPassword="True"
+                                    Placeholder="Repita a senha"
+                                    ReturnCommand="{Binding SaveCommand}"
+                                    ReturnType="Go"
+                                    Text="{Binding ConfirmPassword}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Rodapé: erro + ações -->
+        <Border Grid.Row="3" Padding="20,12" Style="{StaticResource MzCardRaised}">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                <Label
+                    IsVisible="{Binding HasError}"
+                    LineBreakMode="WordWrap"
+                    Style="{StaticResource MzError}"
+                    Text="{Binding ErrorMessage}"
+                    VerticalOptions="Center" />
+                <Button
+                    Grid.Column="1"
+                    Command="{Binding CancelCommand}"
+                    Style="{StaticResource MzOutlineButton}"
+                    Text="Cancelar"
+                    VerticalOptions="Center" />
+                <Grid Grid.Column="2" VerticalOptions="Center">
+                    <Button
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsLoaded}"
+                        MinimumWidthRequest="150"
+                        Style="{StaticResource MzPrimaryButton}"
+                        Text="{Binding SaveText}" />
+                    <ActivityIndicator
+                        Margin="0,0,12,0"
+                        HeightRequest="20"
+                        HorizontalOptions="End"
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        WidthRequest="20"
+                        Color="White" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</ContentPage>

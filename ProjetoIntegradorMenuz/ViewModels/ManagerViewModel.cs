@@ -7,7 +7,7 @@ using ProjetoIntegradorMenuz.Views;
 
 namespace ProjetoIntegradorMenuz.ViewModels
 {
-    public enum ManagerTab { Overview, Orders, Tables, Menu }
+    public enum ManagerTab { Overview, Orders, Tables, Users, Menu }
 
     /// <summary>
     /// Painel da gerência (PDV): indicadores do dia, todos os pedidos do dia (com cancelamento)
@@ -41,18 +41,21 @@ namespace ProjetoIntegradorMenuz.ViewModels
         [NotifyPropertyChangedFor(nameof(IsOverview))]
         [NotifyPropertyChangedFor(nameof(IsOrders))]
         [NotifyPropertyChangedFor(nameof(IsTables))]
+        [NotifyPropertyChangedFor(nameof(IsUsers))]
         [NotifyPropertyChangedFor(nameof(IsMenu))]
         private ManagerTab selectedTab = ManagerTab.Overview;
 
         public bool IsOverview => SelectedTab == ManagerTab.Overview;
         public bool IsOrders => SelectedTab == ManagerTab.Orders;
         public bool IsTables => SelectedTab == ManagerTab.Tables;
+        public bool IsUsers => SelectedTab == ManagerTab.Users;
         public bool IsMenu => SelectedTab == ManagerTab.Menu;
 
         // Ao abrir a aba de mesas, já mostra as contas como estão agora.
         partial void OnSelectedTabChanged(ManagerTab value)
         {
             if (value == ManagerTab.Tables) _ = ReloadOpenBillsAsync();
+            if (value == ManagerTab.Users) _ = ReloadUsersAsync();
         }
 
         [RelayCommand]
@@ -113,6 +116,16 @@ namespace ProjetoIntegradorMenuz.ViewModels
 
         /// <summary>Pedidos de hoje, do mais novo para o mais antigo.</summary>
         public ObservableCollection<OrderCardViewModel> Orders { get; } = new();
+
+        // ---------------- Usuários ----------------
+
+        public ObservableCollection<ManagerUserViewModel> Users { get; } = new();
+        public bool HasUsers => Users.Count > 0;
+        public bool HasNoUsers => Users.Count == 0;
+
+        public string UsersSummary => Users.Count == 0
+            ? "Nenhum usuário cadastrado."
+            : $"{Users.Count(u => u.IsActive)} ativos de {Users.Count} {(Users.Count == 1 ? "usuário" : "usuários")}";
 
         // ---------------- Mesas abertas ----------------
 
@@ -251,6 +264,18 @@ namespace ProjetoIntegradorMenuz.ViewModels
                 card.Update(await _admin.SetOrderStatusAsync(card.Id, OrderStatus.Cancelled));
                 await ReloadDashboardAsync();
             }, showBusy: false);
+        }
+
+        // ---------------- Ações: usuários ----------------
+
+        [RelayCommand]
+        private async Task NewUserAsync() => await Shell.Current.GoToAsync($"{nameof(UserEditPage)}?id=0");
+
+        [RelayCommand]
+        private async Task EditUserAsync(ManagerUserViewModel? item)
+        {
+            if (item is not null)
+                await Shell.Current.GoToAsync($"{nameof(UserEditPage)}?id={item.Id}");
         }
 
         // ---------------- Ações: mesas abertas ----------------
@@ -423,6 +448,30 @@ namespace ProjetoIntegradorMenuz.ViewModels
             finally
             {
                 _dashboardLoading = false;
+            }
+        }
+
+        /// <summary>Recarrega a lista de usuários (ao abrir a aba e ao voltar do cadastro/edição).</summary>
+        public async Task ReloadUsersAsync()
+        {
+            try
+            {
+                var users = await _admin.GetUsersAsync();
+                Users.Clear();
+                foreach (var u in users)
+                    Users.Add(new ManagerUserViewModel(u));
+
+                OnPropertyChanged(nameof(HasUsers));
+                OnPropertyChanged(nameof(HasNoUsers));
+                OnPropertyChanged(nameof(UsersSummary));
+            }
+            catch (Exception ex) when (ex is StaffAccessException or OrderRejectedException)
+            {
+                ErrorMessage = ex.Message;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                ErrorMessage = "Não foi possível carregar os usuários. Verifique se a API está em execução.";
             }
         }
 

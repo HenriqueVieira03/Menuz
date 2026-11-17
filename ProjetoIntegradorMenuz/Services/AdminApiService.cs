@@ -27,6 +27,16 @@ namespace ProjetoIntegradorMenuz.Services
         public Task<OrderDto> SetOrderStatusAsync(int orderId, OrderStatus status) =>
             SendAsync<OrderDto>(HttpMethod.Put, $"api/orders/{orderId}/status", new UpdateOrderStatusRequest { Status = status });
 
+        // ---- Usuários da equipe ----
+
+        public Task<List<UserAdmin>> GetUsersAsync() => GetAsync<List<UserAdmin>>("api/admin/users");
+
+        public Task<UserAdmin> CreateUserAsync(SaveUserRequest request) =>
+            SendAsync<UserAdmin>(HttpMethod.Post, "api/admin/users", request);
+
+        public Task<UserAdmin> UpdateUserAsync(int id, SaveUserRequest request) =>
+            SendAsync<UserAdmin>(HttpMethod.Put, $"api/admin/users/{id}", request);
+
         // ---- Contas das mesas ----
 
         public Task<List<OpenBill>> GetOpenBillsAsync() => GetAsync<List<OpenBill>>("api/admin/bills/open");

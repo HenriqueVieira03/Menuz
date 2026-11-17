@@ -26,6 +26,7 @@ namespace ProjetoIntegradorMenuz.Views
             {
                 // Voltando do editor de produto ou da cozinha: só o cardápio pode ter mudado.
                 await _vm.ReloadMenuAsync();
+                if (_vm.IsUsers) await _vm.ReloadUsersAsync();
             }
         }
 
